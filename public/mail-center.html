@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Mejlcentralen v8.1</title>
+  <title>Mejlcentralen v8.2</title>
 
   <style>
     :root {
@@ -338,7 +338,7 @@
 
 <body>
   <main class="app">
-    <h1>Mejlcentralen v8.1</h1>
+    <h1>Mejlcentralen v8.2</h1>
 
     <div class="intro">
       Välj vad som ska göras med varje mejl. Inget utförs förrän du
@@ -384,7 +384,7 @@
   </main>
 
   <script>
-    const APP_VERSION = "0.8.1";
+    const APP_VERSION = "0.8.2";
 
     const STATUS_CONFIG = {
       reply: {
@@ -457,13 +457,6 @@
       return String(value).padStart(2, "0");
     }
 
-    /*
-     * Standard för Påminn:
-     * nästa kalenderdag kl. 09:00.
-     *
-     * Vi bygger datumet lokalt i webbläsaren så att
-     * det inte påverkas av UTC-datum.
-     */
     function defaultReminderDate() {
       const date = new Date();
 
@@ -628,10 +621,6 @@
               ? previous.time
               : defaultReminderTime(),
 
-          /*
-           * Datum och tid är bara förslag tills
-           * användaren uttryckligen godkänner dem.
-           */
           approved: false
         };
       }
@@ -735,8 +724,8 @@
       decision[field] = value;
 
       /*
-       * Om datum eller tid ändras efter ett tidigare
-       * godkännande måste användaren godkänna igen.
+       * Ändras datum eller tid efter ett tidigare
+       * godkännande måste påminnelsen godkännas igen.
        */
       decision.approved = false;
 
@@ -1071,12 +1060,11 @@
         decisions[task.id];
 
       /*
-       * Ett Påminn-val blir inte grönt bara för att
-       * knappen har tryckts. Datum och tid måste först
-       * godkännas.
+       * Kortet blir färgmarkerat först när valet
+       * verkligen är komplett.
        *
-       * Samma princip gäller Svara: svaret måste vara
-       * godkänt innan kortet räknas som färdigt.
+       * Påminn kräver därför separat godkännande.
+       * Svara kräver godkänt svar.
        */
       if (
         currentDecision &&
@@ -1801,10 +1789,6 @@
               decision.time
           };
 
-          /*
-           * Detta är användarens uttryckligen
-           * godkända datum och tid.
-           */
           action.approved =
             true;
         }
