@@ -4,15 +4,46 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Mejlcentralen v4</title>
-<style>
-:root{font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;color:#171717;background:transparent}
-*{box-sizing:border-box}
-body{margin:0;padding:12px;background:transparent}
-.shell{max-width:820px;margin:auto;display:grid;gap:12px}
 
-.head{display:flex;justify-content:space-between;gap:14px;align-items:flex-start}
-.head h1{font-size:20px;margin:0}
-.sub,.meta,.help,.status{font-size:12px;color:#666}
+<style>
+:root{
+  font-family:Inter,ui-sans-serif,system-ui,-apple-system,
+  BlinkMacSystemFont,"Segoe UI",sans-serif;
+  color:#171717;
+  background:transparent
+}
+
+*{box-sizing:border-box}
+
+body{
+  margin:0;
+  padding:12px;
+  background:transparent
+}
+
+.shell{
+  max-width:820px;
+  margin:auto;
+  display:grid;
+  gap:12px
+}
+
+.head{
+  display:flex;
+  justify-content:space-between;
+  gap:14px;
+  align-items:flex-start
+}
+
+.head h1{
+  font-size:20px;
+  margin:0
+}
+
+.sub,.meta,.help,.status{
+  font-size:12px;
+  color:#666
+}
 
 .counter{
   border:1px solid #ddd;
@@ -35,13 +66,22 @@ body{margin:0;padding:12px;background:transparent}
   background:#fbfffc
 }
 
+/* Ingen åtgärd = gul markering */
 .card.noaction{
-  border-color:#d6d6d6;
-  background:#fafafa
+  border-color:#e2c45a;
+  background:#fffdf3
 }
 
-.title{font-weight:750;font-size:15px}
-.summary{font-size:13px;line-height:1.45;margin:10px 0 12px}
+.title{
+  font-weight:750;
+  font-size:15px
+}
+
+.summary{
+  font-size:13px;
+  line-height:1.45;
+  margin:10px 0 12px
+}
 
 .actions,.row{
   display:flex;
@@ -60,20 +100,26 @@ body{margin:0;padding:12px;background:transparent}
   cursor:pointer
 }
 
-.btn:hover{background:#f6f6f6}
+.btn:hover{
+  background:#f6f6f6
+}
 
+/* Vanliga val = gröna */
 .btn.selected{
   background:#16803c;
   color:#fff;
   border-color:#16803c
 }
 
-.btn.skip{color:#666}
+/* Ingen åtgärd = gul */
+.btn.skip{
+  color:#555
+}
 
 .btn.skip.selected{
-  background:#ececec;
-  color:#555;
-  border-color:#cfcfcf
+  background:#f4c542;
+  color:#171717;
+  border-color:#d5a900
 }
 
 .editor{
@@ -83,7 +129,9 @@ body{margin:0;padding:12px;background:transparent}
   border-top:1px solid #eee
 }
 
-.editor.show{display:block}
+.editor.show{
+  display:block
+}
 
 textarea,input{
   width:100%;
@@ -99,7 +147,9 @@ textarea{
   resize:vertical
 }
 
-.row{margin-top:7px}
+.row{
+  margin-top:7px
+}
 
 .choice{
   font-size:12px;
@@ -110,7 +160,7 @@ textarea{
 }
 
 .choice.noaction-choice{
-  color:#666
+  color:#9a7200
 }
 
 .batch{
@@ -154,34 +204,62 @@ textarea{
 </head>
 
 <body>
+
 <main class="shell">
 
   <header class="head">
     <div>
       <h1>Mejl – att göra</h1>
+
       <div class="sub">
-        Ta ställning till alla mejl. Inget skickas till ChatGPT förrän du klickar Utför.
+        Ta ställning till alla mejl. Inget skickas till ChatGPT
+        förrän du klickar Utför.
       </div>
     </div>
-    <div class="counter" id="counter">0 av 0 hanterade</div>
+
+    <div class="counter" id="counter">
+      0 av 0 hanterade
+    </div>
   </header>
 
   <div id="list"></div>
 
   <section class="batch">
-    <div class="help" id="help">Gå igenom alla uppgifter först.</div>
-    <button class="execute" id="execute" disabled>Utför åtgärder</button>
+
+    <div class="help" id="help">
+      Gå igenom alla uppgifter först.
+    </div>
+
+    <button
+      class="execute"
+      id="execute"
+      disabled>
+      Utför åtgärder
+    </button>
+
     <div class="status" id="status"></div>
+
   </section>
 
 </main>
 
 <script type="module">
-const listEl=document.querySelector('#list');
-const counterEl=document.querySelector('#counter');
-const helpEl=document.querySelector('#help');
-const executeEl=document.querySelector('#execute');
-const statusEl=document.querySelector('#status');
+
+const listEl =
+  document.querySelector('#list');
+
+const counterEl =
+  document.querySelector('#counter');
+
+const helpEl =
+  document.querySelector('#help');
+
+const executeEl =
+  document.querySelector('#execute');
+
+const statusEl =
+  document.querySelector('#status');
+
 
 let tasks=[];
 let rpcId=0;
@@ -190,10 +268,17 @@ let sent=false;
 const pending=new Map();
 const decisions=new Map();
 
+
 function request(method,params){
+
   return new Promise((resolve,reject)=>{
+
     const id=++rpcId;
-    pending.set(id,{resolve,reject});
+
+    pending.set(
+      id,
+      {resolve,reject}
+    );
 
     parent.postMessage({
       jsonrpc:'2.0',
@@ -201,67 +286,123 @@ function request(method,params){
       method,
       params
     },'*');
+
   });
+
 }
 
+
 function notify(method,params){
+
   parent.postMessage({
     jsonrpc:'2.0',
     method,
     params
   },'*');
+
 }
 
-window.addEventListener('message',e=>{
-  if(e.source!==parent)return;
 
-  const m=e.data;
+window.addEventListener(
+  'message',
+  e=>{
 
-  if(!m||m.jsonrpc!=='2.0')return;
+    if(e.source!==parent)return;
 
-  if(typeof m.id==='number'){
-    const p=pending.get(m.id);
+    const m=e.data;
 
-    if(!p)return;
+    if(!m || m.jsonrpc!=='2.0')
+      return;
 
-    pending.delete(m.id);
 
-    m.error
-      ? p.reject(m.error)
-      : p.resolve(m.result);
+    if(typeof m.id==='number'){
 
-    return;
-  }
+      const p=pending.get(m.id);
 
-  let incoming=null;
+      if(!p)return;
 
-  if(m.method==='ui/notifications/tool-result'){
-    incoming=m.params?.structuredContent?.tasks;
-  }
+      pending.delete(m.id);
 
-  if(m.method==='ui/notifications/tool-input'){
-    incoming=m.params?.arguments?.tasks||m.params?.tasks;
-  }
+      m.error
+        ? p.reject(m.error)
+        : p.resolve(m.result);
 
-  if(Array.isArray(incoming)){
-    tasks=incoming;
-    decisions.clear();
-    sent=false;
-    statusEl.textContent='';
-    render();
-  }
-},{passive:true});
+      return;
+    }
 
-const ready=request('ui/initialize',{
-  appInfo:{
-    name:'mejlcentral',
-    version:'0.4.0'
+
+    let incoming=null;
+
+
+    if(
+      m.method===
+      'ui/notifications/tool-result'
+    ){
+
+      incoming=
+        m.params
+          ?.structuredContent
+          ?.tasks;
+
+    }
+
+
+    if(
+      m.method===
+      'ui/notifications/tool-input'
+    ){
+
+      incoming=
+        m.params
+          ?.arguments
+          ?.tasks
+        ||
+        m.params
+          ?.tasks;
+
+    }
+
+
+    if(Array.isArray(incoming)){
+
+      tasks=incoming;
+
+      decisions.clear();
+
+      sent=false;
+
+      statusEl.textContent='';
+
+      render();
+
+    }
+
   },
-  appCapabilities:{},
-  protocolVersion:'2026-01-26'
-})
-.then(()=>notify('ui/notifications/initialized',{}))
+  {passive:true}
+);
+
+
+const ready=request(
+  'ui/initialize',
+  {
+    appInfo:{
+      name:'mejlcentral',
+      version:'0.4.0'
+    },
+
+    appCapabilities:{},
+
+    protocolVersion:'2026-01-26'
+  }
+)
+.then(
+  ()=>notify(
+    'ui/notifications/initialized',
+    {}
+  )
+)
 .catch(()=>{});
+
 
 const esc=(s='')=>
   String(s).replace(
@@ -275,144 +416,248 @@ const esc=(s='')=>
     }[c])
   );
 
+
 const label=a=>({
+
   reply:'Svara',
   done:'Klar',
   wait:'Vänta',
   watch:'Bevaka',
   remind:'Påminn',
   skip:'Ingen åtgärd'
+
 }[a]||a);
 
+
 function choose(t,action,extra={}){
-  decisions.set(t.id,{
-    taskId:t.id,
-    title:t.title,
-    account:t.account||'',
-    action,
-    ...extra
-  });
+
+  decisions.set(
+    t.id,
+    {
+      taskId:t.id,
+      title:t.title,
+      account:t.account||'',
+      action,
+      ...extra
+    }
+  );
 
   sent=false;
+
   statusEl.textContent='';
+
   render();
+
 }
+
 
 function render(){
 
-  const handled=tasks.filter(t=>{
-    const d=decisions.get(t.id);
-    return d&&!d.editing;
-  }).length;
+  const handled=
+    tasks.filter(t=>{
 
-  const total=tasks.length;
+      const d=
+        decisions.get(t.id);
 
-  counterEl.textContent=`${handled} av ${total} hanterade`;
+      return d&&!d.editing;
 
-  const complete=total>0&&handled===total;
+    }).length;
 
-  executeEl.disabled=!complete||sent;
+
+  const total=
+    tasks.length;
+
+
+  counterEl.textContent=
+    `${handled} av ${total} hanterade`;
+
+
+  const complete=
+    total>0 &&
+    handled===total;
+
+
+  executeEl.disabled=
+    !complete || sent;
+
 
   executeEl.textContent=
     sent
-      ?'Skickat till ChatGPT'
-      :complete
-        ?`Utför ${total} beslut`
-        :'Utför åtgärder';
+      ? 'Skickat till ChatGPT'
+      : complete
+        ? `Utför ${total} beslut`
+        : 'Utför åtgärder';
+
 
   helpEl.textContent=
     complete
-      ?'Alla uppgifter är genomgångna. Klicka Utför för att genomföra besluten.'
-      :`${Math.max(total-handled,0)} kvar att ta ställning till.`;
+      ? 'Alla uppgifter är genomgångna. Klicka Utför för att genomföra besluten.'
+      : `${Math.max(total-handled,0)} kvar att ta ställning till.`;
+
 
   listEl.innerHTML='';
 
+
   if(!total){
+
     listEl.innerHTML=
       '<div class="empty">Inga öppna mejluppgifter.</div>';
+
     return;
+
   }
+
 
   tasks.forEach((t,i)=>{
 
-    const d=decisions.get(t.id);
-    const editing=d?.editing;
+    const d=
+      decisions.get(t.id);
 
-    const el=document.createElement('section');
+    const editing=
+      d?.editing;
 
-    const decided=d&&!editing;
-    const noAction=decided&&d.action==='skip';
+    const el=
+      document.createElement(
+        'section'
+      );
+
+
+    const decided=
+      d&&!editing;
+
+
+    const noAction=
+      decided &&
+      d.action==='skip';
+
 
     el.className=
       `card ${decided?'decided':''} ${noAction?'noaction':''}`;
 
+
     el.innerHTML=`
+
       <div class="title">
         ${i+1}. ${esc(t.title)}
       </div>
 
       <div class="meta">
         ${esc(t.account||'')}
-        ${t.received?' · '+esc(t.received):''}
+        ${
+          t.received
+            ? ' · '+esc(t.received)
+            : ''
+        }
       </div>
 
       <div class="summary">
         ${esc(t.summary||'')}
       </div>
 
+
       <div class="actions">
 
         <button
           type="button"
-          class="btn ${d?.action==='reply'&&!editing?'selected':''}"
+          class="btn ${
+            d?.action==='reply' &&
+            !editing
+              ? 'selected'
+              : ''
+          }"
           data-action="reply">
           Svara
         </button>
 
+
         <button
           type="button"
-          class="btn ${d?.action==='done'&&!editing?'selected':''}"
+          class="btn ${
+            d?.action==='done' &&
+            !editing
+              ? 'selected'
+              : ''
+          }"
           data-action="done">
           Klar
         </button>
 
+
         <button
           type="button"
-          class="btn ${d?.action==='wait'&&!editing?'selected':''}"
+          class="btn ${
+            d?.action==='wait' &&
+            !editing
+              ? 'selected'
+              : ''
+          }"
           data-action="wait">
           Vänta
         </button>
 
+
         <button
           type="button"
-          class="btn ${d?.action==='watch'&&!editing?'selected':''}"
+          class="btn ${
+            d?.action==='watch' &&
+            !editing
+              ? 'selected'
+              : ''
+          }"
           data-action="watch">
           Bevaka
         </button>
 
+
         <button
           type="button"
-          class="btn ${d?.action==='remind'&&!editing?'selected':''}"
+          class="btn ${
+            d?.action==='remind' &&
+            !editing
+              ? 'selected'
+              : ''
+          }"
           data-action="remind">
           Påminn
         </button>
 
+
         <button
           type="button"
-          class="btn skip ${d?.action==='skip'&&!editing?'selected':''}"
+          class="btn skip ${
+            d?.action==='skip' &&
+            !editing
+              ? 'selected'
+              : ''
+          }"
           data-action="skip">
           Ingen åtgärd
         </button>
 
       </div>
 
+
       <div
-        class="editor ${editing==='reply'?'show':''}"
+        class="editor ${
+          editing==='reply'
+            ? 'show'
+            : ''
+        }"
         data-editor="reply">
 
-        <textarea>${esc(d?.text??t.replyDraft??'')}</textarea>
+        <textarea>${
+          esc(
+            d?.text
+            ??
+            t.replyDraft
+            ??
+            ''
+          )
+        }</textarea>
+
 
         <div class="row">
+
           <button
             type="button"
             class="btn save-reply">
@@ -424,17 +669,26 @@ function render(){
             class="btn cancel">
             Avbryt
           </button>
+
         </div>
 
       </div>
 
+
       <div
-        class="editor ${editing==='remind'?'show':''}"
+        class="editor ${
+          editing==='remind'
+            ? 'show'
+            : ''
+        }"
         data-editor="remind">
 
         <input
           type="datetime-local"
-          value="${esc(d?.when||'')}">
+          value="${
+            esc(d?.when||'')
+          }">
+
 
         <div class="row">
 
@@ -454,191 +708,330 @@ function render(){
 
       </div>
 
-      <div class="choice ${noAction?'noaction-choice':''}">
+
+      <div
+        class="choice ${
+          noAction
+            ? 'noaction-choice'
+            : ''
+        }">
+
         ${
           d&&!editing
-            ?`Valt: ${label(d.action)}
-              ${d.when?' · '+esc(d.when.replace('T',' ')):''}`
-            :''
+            ? `Valt: ${label(d.action)}
+              ${
+                d.when
+                  ? ' · '+
+                    esc(
+                      d.when.replace(
+                        'T',
+                        ' '
+                      )
+                    )
+                  : ''
+              }`
+            : ''
         }
+
       </div>
     `;
 
+
     listEl.appendChild(el);
 
-    el.addEventListener('click',ev=>{
 
-      const b=ev.target.closest('button');
+    el.addEventListener(
+      'click',
+      ev=>{
 
-      if(!b)return;
+        const b=
+          ev.target.closest(
+            'button'
+          );
 
-      const action=b.dataset.action;
+        if(!b)return;
 
-      if(action==='reply'){
 
-        decisions.set(t.id,{
-          ...(d||{}),
-          taskId:t.id,
-          title:t.title,
-          account:t.account||'',
-          action:'reply',
-          editing:'reply'
-        });
+        const action=
+          b.dataset.action;
 
-        render();
-        return;
-      }
 
-      if(action==='remind'){
+        if(action==='reply'){
 
-        decisions.set(t.id,{
-          ...(d||{}),
-          taskId:t.id,
-          title:t.title,
-          account:t.account||'',
-          action:'remind',
-          editing:'remind'
-        });
+          decisions.set(
+            t.id,
+            {
+              ...(d||{}),
 
-        render();
-        return;
-      }
+              taskId:t.id,
+              title:t.title,
+              account:t.account||'',
 
-      if(b.classList.contains('cancel')){
-        decisions.delete(t.id);
-        render();
-        return;
-      }
+              action:'reply',
+              editing:'reply'
+            }
+          );
 
-      if(b.classList.contains('save-reply')){
+          render();
 
-        const text=
-          el.querySelector(
-            '[data-editor="reply"] textarea'
-          ).value.trim();
-
-        if(text){
-          choose(t,'reply',{
-            text,
-            approved:true
-          });
+          return;
         }
 
-        return;
-      }
 
-      if(b.classList.contains('save-reminder')){
+        if(action==='remind'){
 
-        const when=
-          el.querySelector(
-            '[data-editor="remind"] input'
-          ).value;
+          decisions.set(
+            t.id,
+            {
+              ...(d||{}),
 
-        if(when){
-          choose(t,'remind',{when});
+              taskId:t.id,
+              title:t.title,
+              account:t.account||'',
+
+              action:'remind',
+              editing:'remind'
+            }
+          );
+
+          render();
+
+          return;
         }
 
-        return;
-      }
 
-      if(
-        ['done','wait','watch','skip']
-          .includes(action)
-      ){
-        choose(t,action);
-      }
+        if(
+          b.classList.contains(
+            'cancel'
+          )
+        ){
 
-    });
+          decisions.delete(t.id);
+
+          render();
+
+          return;
+        }
+
+
+        if(
+          b.classList.contains(
+            'save-reply'
+          )
+        ){
+
+          const text=
+            el.querySelector(
+              '[data-editor="reply"] textarea'
+            )
+            .value
+            .trim();
+
+
+          if(text){
+
+            choose(
+              t,
+              'reply',
+              {
+                text,
+                approved:true
+              }
+            );
+
+          }
+
+          return;
+        }
+
+
+        if(
+          b.classList.contains(
+            'save-reminder'
+          )
+        ){
+
+          const when=
+            el.querySelector(
+              '[data-editor="remind"] input'
+            )
+            .value;
+
+
+          if(when){
+
+            choose(
+              t,
+              'remind',
+              {when}
+            );
+
+          }
+
+          return;
+        }
+
+
+        if(
+          [
+            'done',
+            'wait',
+            'watch',
+            'skip'
+          ].includes(action)
+        ){
+
+          choose(
+            t,
+            action
+          );
+
+        }
+
+      }
+    );
 
   });
+
 }
 
-executeEl.addEventListener('click',async()=>{
 
-  const vals=
-    [...decisions.values()]
-      .filter(x=>!x.editing);
+executeEl.addEventListener(
+  'click',
+  async()=>{
 
-  if(vals.length!==tasks.length)return;
-
-  const payload={
-    source:'Mejlcentralen',
-    type:'batch',
-    version:4,
-    total:tasks.length,
-
-    actions:
-      vals.filter(
-        x=>x.action!=='skip'
-      ),
-
-    skipped:
-      vals
+    const vals=
+      [...decisions.values()]
         .filter(
-          x=>x.action==='skip'
-        )
-        .map(x=>({
-          taskId:x.taskId,
-          title:x.title,
-          account:x.account
-        }))
-  };
+          x=>!x.editing
+        );
 
-  const prompt=
-    `MEJLCENTRAL_BATCH ${JSON.stringify(payload)}`;
 
-  statusEl.textContent=
-    'Skickar hela batchen till ChatGPT…';
+    if(
+      vals.length!==
+      tasks.length
+    )return;
 
-  executeEl.disabled=true;
 
-  await ready;
+    const payload={
 
-  try{
+      source:'Mejlcentralen',
 
-    await request('ui/message',{
-      role:'user',
-      content:[
-        {
-          type:'text',
-          text:prompt
-        }
-      ]
-    });
+      type:'batch',
 
-    sent=true;
+      version:4,
+
+      total:tasks.length,
+
+
+      actions:
+        vals.filter(
+          x=>x.action!=='skip'
+        ),
+
+
+      skipped:
+        vals
+          .filter(
+            x=>x.action==='skip'
+          )
+          .map(
+            x=>({
+              taskId:x.taskId,
+              title:x.title,
+              account:x.account
+            })
+          )
+
+    };
+
+
+    const prompt=
+      `MEJLCENTRAL_BATCH ${
+        JSON.stringify(payload)
+      }`;
+
 
     statusEl.textContent=
-      'Hela batchen är skickad till ChatGPT.';
+      'Skickar hela batchen till ChatGPT…';
 
-    render();
 
-  }catch(err){
+    executeEl.disabled=true;
 
-    if(window.openai?.sendFollowUpMessage){
 
-      await window.openai.sendFollowUpMessage({
-        prompt
-      });
+    await ready;
+
+
+    try{
+
+      await request(
+        'ui/message',
+        {
+          role:'user',
+
+          content:[
+            {
+              type:'text',
+              text:prompt
+            }
+          ]
+        }
+      );
+
 
       sent=true;
+
 
       statusEl.textContent=
         'Hela batchen är skickad till ChatGPT.';
 
+
       render();
 
-    }else{
-
-      statusEl.textContent=
-        'Kunde inte skicka batchen. Försök igen.';
-
-      executeEl.disabled=false;
     }
+    catch(err){
+
+
+      if(
+        window.openai
+          ?.sendFollowUpMessage
+      ){
+
+        await window.openai
+          .sendFollowUpMessage({
+            prompt
+          });
+
+
+        sent=true;
+
+
+        statusEl.textContent=
+          'Hela batchen är skickad till ChatGPT.';
+
+
+        render();
+
+      }
+      else{
+
+        statusEl.textContent=
+          'Kunde inte skicka batchen. Försök igen.';
+
+
+        executeEl.disabled=false;
+
+      }
+
+    }
+
   }
-});
+);
+
 
 render();
+
 </script>
+
 </body>
 </html>
