@@ -14,10 +14,17 @@ const widgetHtml = readFileSync(
   'utf8'
 );
 
-const APP_VERSION = '0.3.0';
-const WIDGET_URI = 'ui://mejlcentral/v3.html';
+const APP_VERSION = '0.4.0';
+const WIDGET_URI = 'ui://mejlcentral/v4.html';
 
-const STATUS = ['reply', 'done', 'wait', 'watch', 'remind', 'skip'];
+const STATUS = [
+  'reply',
+  'done',
+  'wait',
+  'watch',
+  'remind',
+  'skip'
+];
 
 const taskSchema = z.object({
   id: z.string().min(1),
@@ -96,6 +103,11 @@ Den samlade batchen skickas till ChatGPT först när användaren klickar
 på Utför.
 </p>
 <p>
+Ett svar som användaren har granskat och valt Godkänn svar för
+betraktas som godkänt för att skickas när användaren därefter
+klickar på Utför.
+</p>
+<p>
 Användaren ansvarar för att granska mottagare, innehåll och konsekvenser
 innan externa åtgärder godkänns.
 </p>
@@ -123,7 +135,7 @@ const landing = htmlPage(
 <h1>Mejlcentralen</h1>
 <p>
 Version ${APP_VERSION}. Ett batchbaserat arbetsflöde för mejluppgifter
-i ChatGPT: Svara, Klar, Vänta, Bevaka, Påminn och Hoppa över.
+i ChatGPT: Svara, Klar, Vänta, Bevaka, Påminn och Ingen åtgärd.
 </p>
 <p>
 <a href="/privacy">Integritet</a> ·
@@ -141,7 +153,7 @@ function makeServer(origin) {
 
   registerAppResource(
     server,
-    'mejlcentral-ui-v3',
+    'mejlcentral-ui-v4',
     WIDGET_URI,
     {},
     async () => ({
@@ -160,10 +172,13 @@ function makeServer(origin) {
               }
             },
             'openai/ui': {
-              availableDisplayModes: ['inline', 'fullscreen']
+              availableDisplayModes: [
+                'inline',
+                'fullscreen'
+              ]
             },
             'openai/widgetDescription':
-              'Mejlcentralen v3. Alla beslut samlas lokalt och skickas till ChatGPT först när användaren klickar Utför.'
+              'Mejlcentralen v4. Alla beslut samlas lokalt och skickas till ChatGPT först när användaren klickar Utför. Godkända svar får skickas när batchen utförs.'
           }
         }
       ]
@@ -176,7 +191,7 @@ function makeServer(origin) {
     {
       title: 'Visa Mejlcentralen',
       description:
-        'Visar mejluppgifter i ett batchbaserat gränssnitt. Enskilda knapptryck skickar inget till ChatGPT. När alla uppgifter har ett beslut kan användaren klicka Utför och skicka hela batchen.',
+        'Visar mejluppgifter i ett batchbaserat gränssnitt. Enskilda knapptryck skickar inget till ChatGPT. När alla uppgifter har ett beslut kan användaren klicka Utför och skicka hela batchen. Ett svar med approved=true har uttryckligen godkänts av användaren för att skickas.',
       inputSchema: {
         tasks: z.array(taskSchema).max(100)
       },
@@ -197,7 +212,8 @@ function makeServer(origin) {
       content: [
         {
           type: 'text',
-          text: `Visar ${tasks.length} mejluppgifter i Mejlcentralen v3.`
+          text:
+            `Visar ${tasks.length} mejluppgifter i Mejlcentralen v4.`
         }
       ],
       structuredContent: {
@@ -218,7 +234,9 @@ const httpServer = createServer(async (req, res) => {
     return;
   }
 
-  const proto = req.headers['x-forwarded-proto'] || 'http';
+  const proto =
+    req.headers['x-forwarded-proto'] || 'http';
+
   const host =
     req.headers['x-forwarded-host'] ||
     req.headers.host ||
@@ -227,43 +245,62 @@ const httpServer = createServer(async (req, res) => {
   const origin = `${proto}://${host}`;
   const url = new URL(req.url, origin);
 
-  if (req.method === 'GET' && url.pathname === '/') {
+  if (
+    req.method === 'GET' &&
+    url.pathname === '/'
+  ) {
     res.writeHead(200, {
-      'content-type': 'text/html; charset=utf-8'
+      'content-type':
+        'text/html; charset=utf-8'
     }).end(landing);
     return;
   }
 
-  if (req.method === 'GET' && url.pathname === '/privacy') {
+  if (
+    req.method === 'GET' &&
+    url.pathname === '/privacy'
+  ) {
     res.writeHead(200, {
-      'content-type': 'text/html; charset=utf-8'
+      'content-type':
+        'text/html; charset=utf-8'
     }).end(privacy);
     return;
   }
 
-  if (req.method === 'GET' && url.pathname === '/terms') {
+  if (
+    req.method === 'GET' &&
+    url.pathname === '/terms'
+  ) {
     res.writeHead(200, {
-      'content-type': 'text/html; charset=utf-8'
+      'content-type':
+        'text/html; charset=utf-8'
     }).end(terms);
     return;
   }
 
-  if (req.method === 'GET' && url.pathname === '/support') {
+  if (
+    req.method === 'GET' &&
+    url.pathname === '/support'
+  ) {
     res.writeHead(200, {
-      'content-type': 'text/html; charset=utf-8'
+      'content-type':
+        'text/html; charset=utf-8'
     }).end(support);
     return;
   }
 
-  if (req.method === 'GET' && url.pathname === '/health') {
+  if (
+    req.method === 'GET' &&
+    url.pathname === '/health'
+  ) {
     res.writeHead(200, {
-      'content-type': 'application/json'
+      'content-type':'application/json'
     }).end(
       JSON.stringify({
-        ok: true,
-        service: 'mejlcentral',
-        version: APP_VERSION,
-        widget: WIDGET_URI
+        ok:true,
+        service:'mejlcentral',
+        version:APP_VERSION,
+        widget:WIDGET_URI
       })
     );
     return;
@@ -271,27 +308,35 @@ const httpServer = createServer(async (req, res) => {
 
   if (
     req.method === 'GET' &&
-    url.pathname === '/.well-known/openai-apps-challenge'
+    url.pathname ===
+      '/.well-known/openai-apps-challenge'
   ) {
-    const token = process.env.OPENAI_APPS_CHALLENGE || '';
+    const token =
+      process.env.OPENAI_APPS_CHALLENGE || '';
 
     if (!token) {
       res.writeHead(404, {
-        'content-type': 'text/plain; charset=utf-8'
+        'content-type':
+          'text/plain; charset=utf-8'
       }).end('');
       return;
     }
 
     res.writeHead(200, {
-      'content-type': 'text/plain; charset=utf-8',
-      'cache-control': 'no-store'
+      'content-type':
+        'text/plain; charset=utf-8',
+      'cache-control':'no-store'
     }).end(token);
+
     return;
   }
 
-  if (req.method === 'OPTIONS' && url.pathname === MCP_PATH) {
+  if (
+    req.method === 'OPTIONS' &&
+    url.pathname === MCP_PATH
+  ) {
     res.writeHead(204, {
-      'Access-Control-Allow-Origin': '*',
+      'Access-Control-Allow-Origin':'*',
       'Access-Control-Allow-Methods':
         'POST, GET, DELETE, OPTIONS',
       'Access-Control-Allow-Headers':
@@ -299,15 +344,21 @@ const httpServer = createServer(async (req, res) => {
       'Access-Control-Expose-Headers':
         'Mcp-Session-Id'
     });
+
     res.end();
     return;
   }
 
   if (
     url.pathname === MCP_PATH &&
-    ['POST', 'GET', 'DELETE'].includes(req.method || '')
+    ['POST','GET','DELETE']
+      .includes(req.method || '')
   ) {
-    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader(
+      'Access-Control-Allow-Origin',
+      '*'
+    );
+
     res.setHeader(
       'Access-Control-Expose-Headers',
       'Mcp-Session-Id'
@@ -315,27 +366,30 @@ const httpServer = createServer(async (req, res) => {
 
     const server = makeServer(origin);
 
-    const transport = new StreamableHTTPServerTransport({
-      sessionIdGenerator: undefined,
-      enableJsonResponse: true
-    });
+    const transport =
+      new StreamableHTTPServerTransport({
+        sessionIdGenerator:undefined,
+        enableJsonResponse:true
+      });
 
-    res.on('close', () => {
+    res.on('close',()=>{
       transport.close();
       server.close();
     });
 
     try {
       await server.connect(transport);
-      await transport.handleRequest(req, res);
-    } catch (err) {
+      await transport.handleRequest(req,res);
+    } catch(err) {
       console.error(
         'MCP request failed',
         err?.message || err
       );
 
-      if (!res.headersSent) {
-        res.writeHead(500).end('Internal server error');
+      if(!res.headersSent) {
+        res
+          .writeHead(500)
+          .end('Internal server error');
       }
     }
 
@@ -343,12 +397,13 @@ const httpServer = createServer(async (req, res) => {
   }
 
   res.writeHead(404, {
-    'content-type': 'text/plain; charset=utf-8'
+    'content-type':
+      'text/plain; charset=utf-8'
   }).end('Not Found');
 });
 
-httpServer.listen(port, () =>
+httpServer.listen(port,()=>{
   console.log(
     `Mejlcentralen ${APP_VERSION}: http://localhost:${port}${MCP_PATH}`
-  )
-);
+  );
+});
