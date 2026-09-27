@@ -4,12 +4,10 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
 
-  <title>Mejlcentralen v5</title>
+  <title>Mejlcentralen v6</title>
 
   <style>
-    * {
-      box-sizing: border-box;
-    }
+    * { box-sizing: border-box; }
 
     :root {
       --bg: #ffffff;
@@ -25,20 +23,21 @@
       --yellow-border: #c99f00;
       --yellow-bg: #fff7d1;
 
+      --red: #c62828;
+      --red-bg: #fdecec;
+
       --blue: #2563eb;
     }
 
     body {
       margin: 0;
       padding: 16px;
-
       font-family:
         system-ui,
         -apple-system,
         BlinkMacSystemFont,
         "Segoe UI",
         sans-serif;
-
       background: var(--bg);
       color: var(--text);
     }
@@ -72,7 +71,21 @@
       color: var(--muted);
     }
 
-    .tasks {
+    .section-title {
+      margin: 22px 0 5px;
+      font-size: 18px;
+      font-weight: 750;
+    }
+
+    .section-description {
+      margin: 0 0 11px;
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.4;
+    }
+
+    .tasks,
+    .ads {
       display: flex;
       flex-direction: column;
       gap: 12px;
@@ -83,7 +96,6 @@
       border-radius: 14px;
       padding: 14px;
       background: var(--surface);
-
       transition:
         background 0.15s ease,
         border-color 0.15s ease;
@@ -97,6 +109,16 @@
     .card.noaction {
       border-color: var(--yellow-border);
       background: var(--yellow-bg);
+    }
+
+    .card.delete-selected {
+      border-color: #e1a0a0;
+      background: #fff7f7;
+    }
+
+    .card.keep-selected {
+      border-color: #b8d9c2;
+      background: #f5fbf7;
     }
 
     .title {
@@ -133,15 +155,11 @@
       border: 1px solid #cfcfd5;
       background: #fff;
       color: var(--text);
-
       border-radius: 9px;
       padding: 8px 11px;
-
       font-size: 13px;
       font-weight: 600;
-
       cursor: pointer;
-
       transition:
         background 0.12s ease,
         border-color 0.12s ease,
@@ -153,20 +171,12 @@
       transform: scale(0.98);
     }
 
-    /*
-     * Vanliga val.
-     * Dessa får bli gröna.
-     */
     .btn.selected {
       background: var(--green-bg);
       border-color: var(--green);
       color: #0b5c29;
     }
 
-    /*
-     * Ingen åtgärd har en egen klass.
-     * Den använder ALDRIG .selected.
-     */
     .btn.skip {
       background: #fffdf3;
       border-color: #dbc86e;
@@ -177,6 +187,30 @@
       background: var(--yellow) !important;
       border-color: var(--yellow-border) !important;
       color: #171717 !important;
+    }
+
+    .btn.delete {
+      border-color: #e1a0a0;
+      color: #9f1f1f;
+      background: #fff;
+    }
+
+    .btn.delete-selected {
+      background: var(--red-bg);
+      border-color: var(--red);
+      color: #991b1b;
+    }
+
+    .btn.keep {
+      border-color: #a8cdb3;
+      color: #0b5c29;
+      background: #fff;
+    }
+
+    .btn.keep-selected {
+      background: var(--green-bg);
+      border-color: var(--green);
+      color: #0b5c29;
     }
 
     .reply-box {
@@ -200,18 +234,13 @@
     textarea {
       width: 100%;
       min-height: 130px;
-
       resize: vertical;
-
       border: 1px solid #cfcfd5;
       border-radius: 10px;
-
       padding: 10px;
-
       font: inherit;
       font-size: 14px;
       line-height: 1.45;
-
       background: #fff;
       color: var(--text);
     }
@@ -223,18 +252,13 @@
 
     .approve {
       margin-top: 8px;
-
       border: 0;
       border-radius: 9px;
-
       background: var(--blue);
       color: #fff;
-
       padding: 8px 12px;
-
       font-size: 13px;
       font-weight: 700;
-
       cursor: pointer;
     }
 
@@ -250,15 +274,11 @@
 
     .choice {
       display: none;
-
       margin-top: 10px;
       padding: 7px 9px;
-
       border-radius: 8px;
-
       background: #eaf6ed;
       color: #155d2c;
-
       font-size: 12px;
       font-weight: 650;
     }
@@ -268,17 +288,25 @@
     }
 
     .choice.noaction-choice {
-      background: #f4c542;
+      background: var(--yellow);
       color: #171717;
+    }
+
+    .choice.delete-choice {
+      background: var(--red-bg);
+      color: #991b1b;
+    }
+
+    .choice.keep-choice {
+      background: var(--green-bg);
+      color: #0b5c29;
     }
 
     .footer {
       position: sticky;
       bottom: 0;
-
       margin-top: 16px;
       padding: 12px 0 4px;
-
       background:
         linear-gradient(
           to bottom,
@@ -290,18 +318,13 @@
 
     .execute {
       width: 100%;
-
       border: 0;
       border-radius: 11px;
-
       padding: 12px 16px;
-
       background: #171717;
       color: #fff;
-
       font-size: 14px;
       font-weight: 750;
-
       cursor: pointer;
     }
 
@@ -318,7 +341,7 @@
     }
 
     .empty {
-      padding: 24px;
+      padding: 20px;
       border: 1px dashed var(--border);
       border-radius: 12px;
       text-align: center;
@@ -327,12 +350,9 @@
 
     .sent {
       padding: 18px;
-
       border: 1px solid #b8d9c2;
       border-radius: 12px;
-
       background: #f1faf4;
-
       text-align: center;
     }
 
@@ -351,25 +371,35 @@
 
       <p>
         Välj vad som ska göras med varje mejl.
-        Ingenting skickas till ChatGPT förrän du klickar
+        Ingenting utförs förrän du klickar
         <strong>Utför åtgärder</strong>.
       </p>
 
-      <div
-        id="progress"
-        class="progress"
-      ></div>
+      <div id="progress" class="progress"></div>
     </header>
 
-    <section
-      id="tasks"
-      class="tasks"
-    ></section>
+    <section id="normalSection">
+      <h2 class="section-title">Mejl att hantera</h2>
 
-    <footer
-      id="footer"
-      class="footer"
-    >
+      <p class="section-description">
+        Relevanta mejl som behöver ett beslut.
+      </p>
+
+      <div id="tasks" class="tasks"></div>
+    </section>
+
+    <section id="adSection">
+      <h2 class="section-title">Reklam / utskick</h2>
+
+      <p class="section-description">
+        Jag bedömer att dessa är reklam eller andra utskick.
+        Välj Radera eller Behåll för varje mejl.
+      </p>
+
+      <div id="ads" class="ads"></div>
+    </section>
+
+    <footer id="footer" class="footer">
       <button
         id="execute"
         class="execute"
@@ -380,44 +410,24 @@
       </button>
 
       <div class="hint">
-        Alla mejl måste ha ett val innan batchen kan utföras.
+        Alla visade mejl måste ha ett val innan batchen kan utföras.
       </div>
     </footer>
 
   </main>
 
   <script>
-    const APP_VERSION = "0.5.0";
+    const APP_VERSION = "0.6.0";
 
     const STATUS_CONFIG = {
-      reply: {
-        label: "Svara"
-      },
-
-      done: {
-        label: "Klar"
-      },
-
-      wait: {
-        label: "Vänta"
-      },
-
-      watch: {
-        label: "Bevaka"
-      },
-
-      remind: {
-        label: "Påminn"
-      },
-
-      skip: {
-        label: "Ingen åtgärd"
-      }
+      reply: { label: "Svara" },
+      done: { label: "Klar" },
+      wait: { label: "Vänta" },
+      watch: { label: "Bevaka" },
+      remind: { label: "Påminn" },
+      skip: { label: "Ingen åtgärd" }
     };
 
-    /*
-     * Ingen åtgärd läggs alltid sist.
-     */
     const STATUS_ORDER = [
       "reply",
       "done",
@@ -427,23 +437,28 @@
       "skip"
     ];
 
-    let tasks = [];
+    const AD_STATUS_CONFIG = {
+      delete: { label: "Radera" },
+      keep: { label: "Behåll" }
+    };
 
-    /*
-     * decisions:
-     *
-     * {
-     *   taskId: {
-     *     status: "...",
-     *     text: "...",
-     *     approved: true/false
-     *   }
-     * }
-     */
+    let tasks = [];
+    let ads = [];
+
     const decisions = {};
+    const adDecisions = {};
 
     const tasksElement =
       document.getElementById("tasks");
+
+    const adsElement =
+      document.getElementById("ads");
+
+    const normalSection =
+      document.getElementById("normalSection");
+
+    const adSection =
+      document.getElementById("adSection");
 
     const executeElement =
       document.getElementById("execute");
@@ -461,9 +476,6 @@
           ? task.statuses
           : [];
 
-      /*
-       * Ta endast med giltiga statusar.
-       */
       const valid =
         incoming.filter(
           status =>
@@ -473,19 +485,12 @@
             )
         );
 
-      /*
-       * skip ska ALLTID finnas.
-       */
       if (!valid.includes("skip")) {
         valid.push("skip");
       }
 
-      /*
-       * Ta bort dubletter och sortera.
-       */
       return STATUS_ORDER.filter(
-        status =>
-          valid.includes(status)
+        status => valid.includes(status)
       );
     }
 
@@ -496,53 +501,37 @@
       }
 
       return input.map(task => ({
-        id:
-          String(
-            task.id ?? ""
-          ),
-
-        title:
-          String(
-            task.title ??
-            "Mejl"
-          ),
-
-        account:
-          String(
-            task.account ?? ""
-          ),
-
-        received:
-          String(
-            task.received ?? ""
-          ),
-
-        summary:
-          String(
-            task.summary ?? ""
-          ),
-
-        statuses:
-          normalizeStatuses(task),
+        id: String(task.id ?? ""),
+        title: String(task.title ?? "Mejl"),
+        account: String(task.account ?? ""),
+        received: String(task.received ?? ""),
+        summary: String(task.summary ?? ""),
+        statuses: normalizeStatuses(task),
 
         replyDraft:
           typeof task.replyDraft === "string"
             ? task.replyDraft
             : "",
 
-        done:
-          Boolean(task.done)
+        done: Boolean(task.done)
       }));
     }
 
 
-    function escapeHtml(value) {
-      return String(value)
-        .replaceAll("&", "&amp;")
-        .replaceAll("<", "&lt;")
-        .replaceAll(">", "&gt;")
-        .replaceAll('"', "&quot;")
-        .replaceAll("'", "&#039;");
+    function normalizeAds(input) {
+      if (!Array.isArray(input)) {
+        return [];
+      }
+
+      return input.map(ad => ({
+        id: String(ad.id ?? ""),
+        title: String(ad.title ?? "Utskick"),
+        sender: String(ad.sender ?? ""),
+        account: String(ad.account ?? ""),
+        received: String(ad.received ?? ""),
+        summary: String(ad.summary ?? ""),
+        statuses: ["delete", "keep"]
+      }));
     }
 
 
@@ -551,28 +540,20 @@
     }
 
 
-    function setDecision(
-      taskId,
-      status
-    ) {
+    function setDecision(taskId, status) {
       const task =
         tasks.find(
-          item =>
-            item.id === taskId
+          item => item.id === taskId
         );
 
       if (!task) {
         return;
       }
 
-      /*
-       * Svara kräver separat godkännande.
-       */
       if (status === "reply") {
         decisions[taskId] = {
           status: "reply",
-          text:
-            task.replyDraft || "",
+          text: task.replyDraft || "",
           approved: false
         };
       } else {
@@ -585,10 +566,16 @@
     }
 
 
-    function approveReply(
-      taskId,
-      text
-    ) {
+    function setAdDecision(adId, status) {
+      adDecisions[adId] = {
+        status
+      };
+
+      render();
+    }
+
+
+    function approveReply(taskId, text) {
       decisions[taskId] = {
         status: "reply",
         text,
@@ -599,9 +586,7 @@
     }
 
 
-    function decisionComplete(
-      task
-    ) {
+    function decisionComplete(task) {
       const decision =
         getDecision(task.id);
 
@@ -609,9 +594,7 @@
         return false;
       }
 
-      if (
-        decision.status === "reply"
-      ) {
+      if (decision.status === "reply") {
         return (
           decision.approved === true &&
           typeof decision.text === "string" &&
@@ -623,29 +606,45 @@
     }
 
 
+    function adDecisionComplete(ad) {
+      return Boolean(
+        adDecisions[ad.id]
+      );
+    }
+
+
     function allComplete() {
+      const total =
+        tasks.length + ads.length;
+
+      if (total === 0) {
+        return false;
+      }
+
       return (
-        tasks.length > 0 &&
-        tasks.every(
-          decisionComplete
-        )
+        tasks.every(decisionComplete) &&
+        ads.every(adDecisionComplete)
       );
     }
 
 
     function renderProgress() {
-      if (!tasks.length) {
+      const total =
+        tasks.length + ads.length;
+
+      if (!total) {
         progressElement.textContent = "";
         return;
       }
 
-      const complete =
-        tasks.filter(
-          decisionComplete
-        ).length;
+      const taskComplete =
+        tasks.filter(decisionComplete).length;
+
+      const adComplete =
+        ads.filter(adDecisionComplete).length;
 
       progressElement.textContent =
-        `${complete} av ${tasks.length} klara`;
+        `${taskComplete + adComplete} av ${total} klara`;
     }
 
 
@@ -662,24 +661,12 @@
 
       button.type = "button";
       button.className = "btn";
-      button.textContent =
-        config.label;
+      button.textContent = config.label;
 
-      /*
-       * KRITISKT:
-       *
-       * skip använder ALDRIG
-       * klassen "selected".
-       *
-       * Därför kan den inte få
-       * den gröna selected-stilen.
-       */
       if (status === "skip") {
         button.classList.add("skip");
 
-        if (
-          decision?.status === "skip"
-        ) {
+        if (decision?.status === "skip") {
           button.classList.add(
             "skip-selected"
           );
@@ -687,9 +674,7 @@
       } else if (
         decision?.status === status
       ) {
-        button.classList.add(
-          "selected"
-        );
+        button.classList.add("selected");
       }
 
       button.addEventListener(
@@ -697,6 +682,41 @@
         () => {
           setDecision(
             task.id,
+            status
+          );
+        }
+      );
+
+      return button;
+    }
+
+
+    function createAdButton(
+      ad,
+      status,
+      decision
+    ) {
+      const button =
+        document.createElement("button");
+
+      button.type = "button";
+      button.className =
+        `btn ${status}`;
+
+      button.textContent =
+        AD_STATUS_CONFIG[status].label;
+
+      if (decision?.status === status) {
+        button.classList.add(
+          `${status}-selected`
+        );
+      }
+
+      button.addEventListener(
+        "click",
+        () => {
+          setAdDecision(
+            ad.id,
             status
           );
         }
@@ -722,8 +742,7 @@
       label.className =
         "reply-label";
 
-      label.textContent =
-        "Svar:";
+      label.textContent = "Svar:";
 
       const textarea =
         document.createElement("textarea");
@@ -745,9 +764,7 @@
       state.className =
         "reply-state";
 
-      if (
-        decision?.approved === true
-      ) {
+      if (decision?.approved === true) {
         approve.classList.add(
           "approved"
         );
@@ -784,10 +801,6 @@
         }
       );
 
-      /*
-       * Om användaren ändrar ett redan
-       * godkänt svar måste det godkännas igen.
-       */
       textarea.addEventListener(
         "input",
         () => {
@@ -829,9 +842,7 @@
     }
 
 
-    function createChoice(
-      decision
-    ) {
+    function createChoice(decision) {
       const choice =
         document.createElement("div");
 
@@ -847,11 +858,40 @@
       choice.textContent =
         `Valt: ${label}`;
 
-      if (
-        decision.status === "skip"
-      ) {
+      if (decision.status === "skip") {
         choice.classList.add(
           "noaction-choice"
+        );
+      }
+
+      return choice;
+    }
+
+
+    function createAdChoice(decision) {
+      const choice =
+        document.createElement("div");
+
+      choice.className =
+        "choice visible";
+
+      choice.textContent =
+        `Valt: ${
+          AD_STATUS_CONFIG[
+            decision.status
+          ]?.label ??
+          decision.status
+        }`;
+
+      if (decision.status === "delete") {
+        choice.classList.add(
+          "delete-choice"
+        );
+      }
+
+      if (decision.status === "keep") {
+        choice.classList.add(
+          "keep-choice"
         );
       }
 
@@ -869,16 +909,10 @@
       card.className = "card";
 
       if (decision) {
-        if (
-          decision.status === "skip"
-        ) {
-          card.classList.add(
-            "noaction"
-          );
+        if (decision.status === "skip") {
+          card.classList.add("noaction");
         } else {
-          card.classList.add(
-            "decided"
-          );
+          card.classList.add("decided");
         }
       }
 
@@ -886,8 +920,7 @@
         document.createElement("div");
 
       title.className = "title";
-      title.textContent =
-        task.title;
+      title.textContent = task.title;
 
       const meta =
         document.createElement("div");
@@ -897,15 +930,11 @@
       const metaParts = [];
 
       if (task.account) {
-        metaParts.push(
-          task.account
-        );
+        metaParts.push(task.account);
       }
 
       if (task.received) {
-        metaParts.push(
-          task.received
-        );
+        metaParts.push(task.received);
       }
 
       meta.textContent =
@@ -914,25 +943,14 @@
       const summary =
         document.createElement("div");
 
-      summary.className =
-        "summary";
-
-      summary.textContent =
-        task.summary;
+      summary.className = "summary";
+      summary.textContent = task.summary;
 
       const buttons =
         document.createElement("div");
 
-      buttons.className =
-        "buttons";
+      buttons.className = "buttons";
 
-      /*
-       * Nu renderas INTE alla knappar.
-       *
-       * Endast de statusar som faktiskt
-       * skickats för mejlet visas,
-       * plus skip som alltid finns.
-       */
       task.statuses.forEach(
         status => {
           buttons.appendChild(
@@ -976,9 +994,109 @@
         decision.status !== "reply"
       ) {
         card.appendChild(
-          createChoice(
-            decision
-          )
+          createChoice(decision)
+        );
+      }
+
+      return card;
+    }
+
+
+    function createAdCard(ad) {
+      const decision =
+        adDecisions[ad.id] || null;
+
+      const card =
+        document.createElement("article");
+
+      card.className = "card";
+
+      if (decision?.status === "delete") {
+        card.classList.add(
+          "delete-selected"
+        );
+      }
+
+      if (decision?.status === "keep") {
+        card.classList.add(
+          "keep-selected"
+        );
+      }
+
+      const title =
+        document.createElement("div");
+
+      title.className = "title";
+      title.textContent = ad.title;
+
+      const meta =
+        document.createElement("div");
+
+      meta.className = "meta";
+
+      const metaParts = [];
+
+      if (ad.sender) {
+        metaParts.push(ad.sender);
+      }
+
+      if (ad.account) {
+        metaParts.push(ad.account);
+      }
+
+      if (ad.received) {
+        metaParts.push(ad.received);
+      }
+
+      meta.textContent =
+        metaParts.join(" · ");
+
+      const summary =
+        document.createElement("div");
+
+      summary.className = "summary";
+      summary.textContent = ad.summary;
+
+      const buttons =
+        document.createElement("div");
+
+      buttons.className = "buttons";
+
+      buttons.appendChild(
+        createAdButton(
+          ad,
+          "delete",
+          decision
+        )
+      );
+
+      buttons.appendChild(
+        createAdButton(
+          ad,
+          "keep",
+          decision
+        )
+      );
+
+      card.appendChild(title);
+
+      if (
+        ad.sender ||
+        ad.account ||
+        ad.received
+      ) {
+        card.appendChild(meta);
+      }
+
+      if (ad.summary) {
+        card.appendChild(summary);
+      }
+
+      card.appendChild(buttons);
+
+      if (decision) {
+        card.appendChild(
+          createAdChoice(decision)
         );
       }
 
@@ -994,29 +1112,41 @@
 
     function render() {
       tasksElement.innerHTML = "";
+      adsElement.innerHTML = "";
 
       if (!tasks.length) {
         tasksElement.innerHTML =
           `
             <div class="empty">
-              Inga mejluppgifter att visa.
+              Inga vanliga mejl att hantera.
             </div>
           `;
-
-        executeElement.disabled =
-          true;
-
-        renderProgress();
-        return;
+      } else {
+        tasks.forEach(
+          task => {
+            tasksElement.appendChild(
+              createCard(task)
+            );
+          }
+        );
       }
 
-      tasks.forEach(
-        task => {
-          tasksElement.appendChild(
-            createCard(task)
-          );
-        }
-      );
+      if (!ads.length) {
+        adsElement.innerHTML =
+          `
+            <div class="empty">
+              Ingen reklam identifierad.
+            </div>
+          `;
+      } else {
+        ads.forEach(
+          ad => {
+            adsElement.appendChild(
+              createAdCard(ad)
+            );
+          }
+        );
+      }
 
       renderProgress();
       updateExecuteState();
@@ -1026,6 +1156,7 @@
     function buildBatchPayload() {
       const actions = [];
       const skipped = [];
+      const adActions = [];
 
       tasks.forEach(
         task => {
@@ -1036,9 +1167,7 @@
             return;
           }
 
-          if (
-            decision.status === "skip"
-          ) {
+          if (decision.status === "skip") {
             skipped.push({
               id: task.id,
               title: task.title,
@@ -1055,9 +1184,7 @@
             status: decision.status
           };
 
-          if (
-            decision.status === "reply"
-          ) {
+          if (decision.status === "reply") {
             action.text =
               decision.text;
 
@@ -1069,13 +1196,33 @@
         }
       );
 
+      ads.forEach(
+        ad => {
+          const decision =
+            adDecisions[ad.id];
+
+          if (!decision) {
+            return;
+          }
+
+          adActions.push({
+            id: ad.id,
+            title: ad.title,
+            sender: ad.sender,
+            account: ad.account,
+            status: decision.status
+          });
+        }
+      );
+
       return {
         source: "Mejlcentralen",
         type: "batch",
-        version: 5,
+        version: 6,
         appVersion: APP_VERSION,
         actions,
-        skipped
+        skipped,
+        adActions
       };
     }
 
@@ -1091,17 +1238,11 @@
       const message =
         `MEJLCENTRAL_BATCH ${JSON.stringify(payload)}`;
 
-      executeElement.disabled =
-        true;
-
+      executeElement.disabled = true;
       executeElement.textContent =
         "Skickar…";
 
       try {
-
-        /*
-         * Primär väg i ChatGPT Apps.
-         */
         if (
           window.openai &&
           typeof window.openai.sendFollowUpMessage === "function"
@@ -1111,10 +1252,6 @@
           });
         }
 
-        /*
-         * Fallback för värdmiljöer
-         * som använder postMessage/ui-message.
-         */
         else if (
           window.parent &&
           window.parent !== window
@@ -1140,22 +1277,21 @@
               <strong>
                 Åtgärderna har skickats till ChatGPT.
               </strong>
-
               ChatGPT utför nu de val du godkänt.
             </div>
           `;
 
+        adsElement.innerHTML = "";
+
         footerElement.style.display =
           "none";
 
-        progressElement.textContent =
-          "";
+        progressElement.textContent = "";
 
       } catch (error) {
         console.error(error);
 
-        executeElement.disabled =
-          false;
+        executeElement.disabled = false;
 
         executeElement.textContent =
           "Utför åtgärder";
@@ -1173,44 +1309,73 @@
     );
 
 
-    /*
-     * Läs data från ChatGPT Apps SDK.
-     */
-    function readToolOutput() {
-      const output =
-        window.openai?.toolOutput;
-
+    function extractToolOutput(output) {
       if (!output) {
         return null;
       }
 
-      /*
-       * Normalt v5-format.
-       */
       if (
-        Array.isArray(
-          output.tasks
-        )
+        Array.isArray(output.tasks) ||
+        Array.isArray(output.ads)
       ) {
-        return output.tasks;
+        return {
+          tasks:
+            Array.isArray(output.tasks)
+              ? output.tasks
+              : [],
+
+          ads:
+            Array.isArray(output.ads)
+              ? output.ads
+              : []
+        };
       }
 
-      /*
-       * Fallback om structuredContent
-       * exponeras explicit.
-       */
-      if (
-        output.structuredContent &&
-        Array.isArray(
-          output.structuredContent.tasks
-        )
-      ) {
-        return output
-          .structuredContent
-          .tasks;
+      if (output.structuredContent) {
+        return {
+          tasks:
+            Array.isArray(
+              output.structuredContent.tasks
+            )
+              ? output.structuredContent.tasks
+              : [],
+
+          ads:
+            Array.isArray(
+              output.structuredContent.ads
+            )
+              ? output.structuredContent.ads
+              : []
+        };
       }
 
       return null;
+    }
+
+
+    function readToolOutput() {
+      return extractToolOutput(
+        window.openai?.toolOutput
+      );
+    }
+
+
+    function applyOutput(output) {
+      if (!output) {
+        return;
+      }
+
+      tasks =
+        normalizeTasks(
+          output.tasks
+        );
+
+      ads =
+        normalizeAds(
+          output.ads
+        );
+
+      render();
     }
 
 
@@ -1219,24 +1384,14 @@
         readToolOutput();
 
       if (initial) {
-        tasks =
-          normalizeTasks(initial);
-
-        render();
+        applyOutput(initial);
       }
     }
 
 
-    /*
-     * Första laddningen.
-     */
     initialize();
 
 
-    /*
-     * ChatGPT kan uppdatera toolOutput
-     * efter att widgeten laddats.
-     */
     window.addEventListener(
       "openai:set_globals",
       event => {
@@ -1247,60 +1402,25 @@
           return;
         }
 
-        const output =
-          globals.toolOutput;
-
-        if (!output) {
-          return;
-        }
-
-        let incoming = null;
-
-        if (
-          Array.isArray(
-            output.tasks
-          )
-        ) {
-          incoming =
-            output.tasks;
-        }
-
-        else if (
-          output.structuredContent &&
-          Array.isArray(
-            output.structuredContent.tasks
-          )
-        ) {
-          incoming =
-            output
-              .structuredContent
-              .tasks;
-        }
+        const incoming =
+          extractToolOutput(
+            globals.toolOutput
+          );
 
         if (incoming) {
-          tasks =
-            normalizeTasks(incoming);
-
-          render();
+          applyOutput(incoming);
         }
       }
     );
 
 
-    /*
-     * Fallback för lokal testning.
-     *
-     * Körs bara om ingen toolOutput
-     * kommit från ChatGPT.
-     */
     setTimeout(
       () => {
         if (
           tasks.length === 0 &&
+          ads.length === 0 &&
           !window.openai?.toolOutput
         ) {
-          tasks = [];
-
           render();
         }
       },
