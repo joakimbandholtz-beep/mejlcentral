@@ -1,431 +1,316 @@
 <!doctype html>
 <html lang="sv">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width,initial-scale=1">
-
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Mejlcentralen v6</title>
 
   <style>
-    * { box-sizing: border-box; }
-
     :root {
+      color-scheme: light dark;
       --bg: #ffffff;
-      --surface: #f7f7f8;
-      --border: #dedee3;
+      --card: #f7f7f8;
+      --border: #dddddf;
       --text: #171717;
-      --muted: #6b6b73;
+      --muted: #6b6b6b;
+      --green: #16803a;
+      --green-soft: #e9f7ee;
+      --yellow: #9a6700;
+      --yellow-soft: #fff5cc;
+      --red: #b42318;
+      --red-soft: #feeceb;
+      --blue: #175cd3;
+      --blue-soft: #eaf2ff;
+    }
 
-      --green: #16803c;
-      --green-bg: #e8f5ec;
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --bg: #181818;
+        --card: #242424;
+        --border: #3a3a3a;
+        --text: #f5f5f5;
+        --muted: #a9a9a9;
+        --green-soft: #173b24;
+        --yellow-soft: #40340d;
+        --red-soft: #421d1b;
+        --blue-soft: #182b4c;
+      }
+    }
 
-      --yellow: #f4c542;
-      --yellow-border: #c99f00;
-      --yellow-bg: #fff7d1;
-
-      --red: #c62828;
-      --red-bg: #fdecec;
-
-      --blue: #2563eb;
+    * {
+      box-sizing: border-box;
     }
 
     body {
       margin: 0;
       padding: 16px;
-      font-family:
-        system-ui,
-        -apple-system,
-        BlinkMacSystemFont,
-        "Segoe UI",
-        sans-serif;
       background: var(--bg);
       color: var(--text);
+      font-family:
+        -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica,
+        Arial, sans-serif;
     }
 
     .app {
-      width: 100%;
       max-width: 820px;
       margin: 0 auto;
     }
 
-    .header {
-      margin-bottom: 16px;
-    }
-
-    .header h1 {
-      margin: 0 0 5px;
+    h1 {
+      margin: 0 0 4px;
       font-size: 22px;
-      line-height: 1.2;
     }
 
-    .header p {
-      margin: 0;
+    h2 {
+      margin: 24px 0 8px;
+      font-size: 17px;
+    }
+
+    .intro,
+    .section-info,
+    .hint,
+    .empty {
       color: var(--muted);
-      font-size: 14px;
+      font-size: 13px;
       line-height: 1.45;
-    }
-
-    .progress {
-      margin-top: 10px;
-      font-size: 13px;
-      color: var(--muted);
-    }
-
-    .section-title {
-      margin: 22px 0 5px;
-      font-size: 18px;
-      font-weight: 750;
-    }
-
-    .section-description {
-      margin: 0 0 11px;
-      color: var(--muted);
-      font-size: 13px;
-      line-height: 1.4;
-    }
-
-    .tasks,
-    .ads {
-      display: flex;
-      flex-direction: column;
-      gap: 12px;
     }
 
     .card {
-      border: 1px solid var(--border);
-      border-radius: 14px;
+      margin-top: 10px;
       padding: 14px;
-      background: var(--surface);
-      transition:
-        background 0.15s ease,
-        border-color 0.15s ease;
-    }
-
-    .card.decided {
-      border-color: #b8d9c2;
-      background: #f5fbf7;
-    }
-
-    .card.noaction {
-      border-color: var(--yellow-border);
-      background: var(--yellow-bg);
-    }
-
-    .card.delete-selected {
-      border-color: #e1a0a0;
-      background: #fff7f7;
-    }
-
-    .card.keep-selected {
-      border-color: #b8d9c2;
-      background: #f5fbf7;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      background: var(--card);
     }
 
     .title {
-      font-size: 16px;
+      font-size: 15px;
       font-weight: 700;
-      line-height: 1.3;
-      margin-bottom: 5px;
+      line-height: 1.35;
     }
 
     .meta {
+      margin-top: 4px;
       color: var(--muted);
       font-size: 12px;
-      margin-bottom: 9px;
     }
 
     .summary {
-      font-size: 14px;
+      margin-top: 8px;
+      font-size: 13px;
       line-height: 1.45;
-      margin-bottom: 12px;
     }
 
     .buttons {
       display: flex;
       flex-wrap: wrap;
       gap: 7px;
+      margin-top: 12px;
     }
 
     button {
-      font: inherit;
-    }
-
-    .btn {
       appearance: none;
-      border: 1px solid #cfcfd5;
-      background: #fff;
-      color: var(--text);
+      border: 1px solid var(--border);
       border-radius: 9px;
+      background: var(--bg);
+      color: var(--text);
       padding: 8px 11px;
+      font: inherit;
       font-size: 13px;
       font-weight: 600;
       cursor: pointer;
-      transition:
-        background 0.12s ease,
-        border-color 0.12s ease,
-        color 0.12s ease,
-        transform 0.05s ease;
     }
 
-    .btn:active {
-      transform: scale(0.98);
+    button:hover {
+      opacity: 0.88;
     }
 
-    .btn.selected {
-      background: var(--green-bg);
+    button.selected {
       border-color: var(--green);
-      color: #0b5c29;
+      background: var(--green-soft);
+      color: var(--green);
     }
 
-    .btn.skip {
-      background: #fffdf3;
-      border-color: #dbc86e;
-      color: #665500;
+    button.skip.selected {
+      border-color: var(--yellow);
+      background: var(--yellow-soft);
+      color: var(--yellow);
     }
 
-    .btn.skip-selected {
-      background: var(--yellow) !important;
-      border-color: var(--yellow-border) !important;
-      color: #171717 !important;
-    }
-
-    .btn.delete {
-      border-color: #e1a0a0;
-      color: #9f1f1f;
-      background: #fff;
-    }
-
-    .btn.delete-selected {
-      background: var(--red-bg);
+    button.delete.selected {
       border-color: var(--red);
-      color: #991b1b;
+      background: var(--red-soft);
+      color: var(--red);
     }
 
-    .btn.keep {
-      border-color: #a8cdb3;
-      color: #0b5c29;
-      background: #fff;
-    }
-
-    .btn.keep-selected {
-      background: var(--green-bg);
+    button.keep.selected {
       border-color: var(--green);
-      color: #0b5c29;
+      background: var(--green-soft);
+      color: var(--green);
     }
 
-    .reply-box {
+    .reply-box,
+    .reminder-box {
       display: none;
       margin-top: 12px;
-      padding-top: 12px;
-      border-top: 1px solid var(--border);
+      padding: 12px;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      background: var(--bg);
     }
 
-    .reply-box.visible {
+    .reply-box.visible,
+    .reminder-box.visible {
       display: block;
-    }
-
-    .reply-label {
-      display: block;
-      font-size: 12px;
-      font-weight: 700;
-      margin-bottom: 6px;
     }
 
     textarea {
       width: 100%;
       min-height: 130px;
       resize: vertical;
-      border: 1px solid #cfcfd5;
-      border-radius: 10px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
       padding: 10px;
+      background: var(--bg);
+      color: var(--text);
+      font: inherit;
+      font-size: 13px;
+      line-height: 1.45;
+    }
+
+    .reply-actions {
+      margin-top: 8px;
+    }
+
+    .approve.selected {
+      border-color: var(--green);
+      background: var(--green-soft);
+      color: var(--green);
+    }
+
+    .reminder-fields {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+      gap: 10px;
+    }
+
+    .field label {
+      display: block;
+      margin-bottom: 5px;
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 600;
+    }
+
+    input[type="date"],
+    input[type="time"] {
+      width: 100%;
+      min-height: 40px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 8px 10px;
+      background: var(--bg);
+      color: var(--text);
       font: inherit;
       font-size: 14px;
-      line-height: 1.45;
-      background: #fff;
-      color: var(--text);
     }
 
-    textarea:focus {
-      outline: 2px solid rgba(37, 99, 235, 0.18);
-      border-color: var(--blue);
-    }
-
-    .approve {
-      margin-top: 8px;
-      border: 0;
-      border-radius: 9px;
-      background: var(--blue);
-      color: #fff;
-      padding: 8px 12px;
-      font-size: 13px;
-      font-weight: 700;
-      cursor: pointer;
-    }
-
-    .approve.approved {
-      background: var(--green);
-    }
-
-    .reply-state {
-      margin-left: 8px;
-      font-size: 12px;
-      color: var(--muted);
-    }
-
-    .choice {
+    .reminder-error {
       display: none;
-      margin-top: 10px;
-      padding: 7px 9px;
-      border-radius: 8px;
-      background: #eaf6ed;
-      color: #155d2c;
+      margin-top: 8px;
+      color: var(--red);
       font-size: 12px;
-      font-weight: 650;
     }
 
-    .choice.visible {
-      display: inline-block;
-    }
-
-    .choice.noaction-choice {
-      background: var(--yellow);
-      color: #171717;
-    }
-
-    .choice.delete-choice {
-      background: var(--red-bg);
-      color: #991b1b;
-    }
-
-    .choice.keep-choice {
-      background: var(--green-bg);
-      color: #0b5c29;
+    .reminder-error.visible {
+      display: block;
     }
 
     .footer {
       position: sticky;
       bottom: 0;
-      margin-top: 16px;
+      margin-top: 18px;
       padding: 12px 0 4px;
-      background:
-        linear-gradient(
-          to bottom,
-          rgba(255,255,255,0),
-          rgba(255,255,255,0.96) 28%,
-          #fff 55%
-        );
+      background: var(--bg);
     }
 
-    .execute {
+    .progress {
+      margin-bottom: 8px;
+      color: var(--muted);
+      font-size: 12px;
+      text-align: center;
+    }
+
+    .submit {
       width: 100%;
-      border: 0;
-      border-radius: 11px;
-      padding: 12px 16px;
-      background: #171717;
+      padding: 11px 14px;
+      border-color: var(--green);
+      background: var(--green);
       color: #fff;
       font-size: 14px;
-      font-weight: 750;
-      cursor: pointer;
     }
 
-    .execute:disabled {
+    .submit:disabled {
+      opacity: 0.42;
       cursor: not-allowed;
-      opacity: 0.35;
     }
 
-    .hint {
-      margin-top: 7px;
-      text-align: center;
-      font-size: 11px;
-      color: var(--muted);
-    }
+    @media (max-width: 560px) {
+      body {
+        padding: 12px;
+      }
 
-    .empty {
-      padding: 20px;
-      border: 1px dashed var(--border);
-      border-radius: 12px;
-      text-align: center;
-      color: var(--muted);
-    }
-
-    .sent {
-      padding: 18px;
-      border: 1px solid #b8d9c2;
-      border-radius: 12px;
-      background: #f1faf4;
-      text-align: center;
-    }
-
-    .sent strong {
-      display: block;
-      margin-bottom: 4px;
+      .reminder-fields {
+        grid-template-columns: 1fr;
+      }
     }
   </style>
 </head>
 
 <body>
   <main class="app">
+    <h1>Mejlcentralen</h1>
 
-    <header class="header">
-      <h1>Mejlcentralen</h1>
+    <div class="intro">
+      Välj vad som ska göras med varje mejl. Inget utförs förrän du
+      klickar på <strong>Utför åtgärder</strong>.
+    </div>
 
-      <p>
-        Välj vad som ska göras med varje mejl.
-        Ingenting utförs förrän du klickar
-        <strong>Utför åtgärder</strong>.
-      </p>
+    <section>
+      <h2>Mejl att hantera</h2>
+      <div id="task-list"></div>
+    </section>
 
+    <section>
+      <h2>Reklam / utskick</h2>
+      <div class="section-info">
+        Jag bedömer att dessa är reklam eller andra utskick. Välj
+        <strong>Radera</strong> eller <strong>Behåll</strong> för varje mejl.
+      </div>
+      <div id="ad-list"></div>
+    </section>
+
+    <div class="footer">
       <div id="progress" class="progress"></div>
-    </header>
-
-    <section id="normalSection">
-      <h2 class="section-title">Mejl att hantera</h2>
-
-      <p class="section-description">
-        Relevanta mejl som behöver ett beslut.
-      </p>
-
-      <div id="tasks" class="tasks"></div>
-    </section>
-
-    <section id="adSection">
-      <h2 class="section-title">Reklam / utskick</h2>
-
-      <p class="section-description">
-        Jag bedömer att dessa är reklam eller andra utskick.
-        Välj Radera eller Behåll för varje mejl.
-      </p>
-
-      <div id="ads" class="ads"></div>
-    </section>
-
-    <footer id="footer" class="footer">
-      <button
-        id="execute"
-        class="execute"
-        type="button"
-        disabled
-      >
+      <button id="submit" class="submit" type="button" disabled>
         Utför åtgärder
       </button>
-
-      <div class="hint">
-        Alla visade mejl måste ha ett val innan batchen kan utföras.
+      <div class="hint" style="margin-top:8px;text-align:center;">
+        Alla visade mejl måste ha ett val innan åtgärderna kan utföras.
       </div>
-    </footer>
-
+    </div>
   </main>
 
   <script>
-    const APP_VERSION = "0.6.0";
+    const APP_VERSION = "0.6.1";
 
     const STATUS_CONFIG = {
-      reply: { label: "Svara" },
-      done: { label: "Klar" },
-      wait: { label: "Vänta" },
-      watch: { label: "Bevaka" },
+      reply:  { label: "Svara" },
+      done:   { label: "Klar" },
+      wait:   { label: "Vänta" },
+      watch:  { label: "Bevaka" },
       remind: { label: "Påminn" },
-      skip: { label: "Ingen åtgärd" }
+      skip:   { label: "Ingen åtgärd", className: "skip" }
     };
 
     const STATUS_ORDER = [
@@ -438,8 +323,8 @@
     ];
 
     const AD_STATUS_CONFIG = {
-      delete: { label: "Radera" },
-      keep: { label: "Behåll" }
+      delete: { label: "Radera", className: "delete" },
+      keep:   { label: "Behåll", className: "keep" }
     };
 
     let tasks = [];
@@ -448,772 +333,527 @@
     const decisions = {};
     const adDecisions = {};
 
-    const tasksElement =
-      document.getElementById("tasks");
-
-    const adsElement =
-      document.getElementById("ads");
-
-    const normalSection =
-      document.getElementById("normalSection");
-
-    const adSection =
-      document.getElementById("adSection");
-
-    const executeElement =
-      document.getElementById("execute");
-
-    const progressElement =
-      document.getElementById("progress");
-
-    const footerElement =
-      document.getElementById("footer");
-
-
-    function normalizeStatuses(task) {
-      const incoming =
-        Array.isArray(task.statuses)
-          ? task.statuses
-          : [];
-
-      const valid =
-        incoming.filter(
-          status =>
-            Object.prototype.hasOwnProperty.call(
-              STATUS_CONFIG,
-              status
-            )
-        );
-
-      if (!valid.includes("skip")) {
-        valid.push("skip");
-      }
-
-      return STATUS_ORDER.filter(
-        status => valid.includes(status)
-      );
-    }
-
-
     function normalizeTasks(input) {
-      if (!Array.isArray(input)) {
-        return [];
-      }
+      if (!Array.isArray(input)) return [];
 
-      return input.map(task => ({
-        id: String(task.id ?? ""),
-        title: String(task.title ?? "Mejl"),
-        account: String(task.account ?? ""),
-        received: String(task.received ?? ""),
-        summary: String(task.summary ?? ""),
-        statuses: normalizeStatuses(task),
-
+      return input.map((task, index) => ({
+        id: String(task?.id ?? `task-${index + 1}`),
+        title: String(task?.title ?? "Mejl"),
+        account: String(task?.account ?? ""),
+        received: String(task?.received ?? ""),
+        summary: String(task?.summary ?? ""),
+        statuses:
+          Array.isArray(task?.statuses) && task.statuses.length
+            ? task.statuses.filter(status => STATUS_CONFIG[status])
+            : [...STATUS_ORDER],
         replyDraft:
-          typeof task.replyDraft === "string"
-            ? task.replyDraft
-            : "",
-
-        done: Boolean(task.done)
+          typeof task?.replyDraft === "string" ? task.replyDraft : "",
+        done: Boolean(task?.done)
       }));
     }
 
-
     function normalizeAds(input) {
-      if (!Array.isArray(input)) {
-        return [];
-      }
+      if (!Array.isArray(input)) return [];
 
-      return input.map(ad => ({
-        id: String(ad.id ?? ""),
-        title: String(ad.title ?? "Utskick"),
-        sender: String(ad.sender ?? ""),
-        account: String(ad.account ?? ""),
-        received: String(ad.received ?? ""),
-        summary: String(ad.summary ?? ""),
+      return input.map((ad, index) => ({
+        id: String(ad?.id ?? `ad-${index + 1}`),
+        title: String(ad?.title ?? "Utskick"),
+        sender: String(ad?.sender ?? ""),
+        account: String(ad?.account ?? ""),
+        received: String(ad?.received ?? ""),
+        summary: String(ad?.summary ?? ""),
         statuses: ["delete", "keep"]
       }));
     }
 
-
-    function getDecision(taskId) {
-      return decisions[taskId] || null;
+    function escapeHtml(value) {
+      return String(value ?? "")
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;")
+        .replaceAll("'", "&#039;");
     }
 
+    function buildMeta(parts) {
+      return parts.filter(Boolean).join(" · ");
+    }
 
-    function setDecision(taskId, status) {
-      const task =
-        tasks.find(
-          item => item.id === taskId
-        );
-
-      if (!task) {
-        return;
-      }
+    function setDecision(task, status) {
+      const previous = decisions[task.id] || {};
 
       if (status === "reply") {
-        decisions[taskId] = {
+        decisions[task.id] = {
           status: "reply",
-          text: task.replyDraft || "",
+          text:
+            typeof previous.text === "string"
+              ? previous.text
+              : task.replyDraft || "",
           approved: false
         };
-      } else {
-        decisions[taskId] = {
-          status
+      } else if (status === "remind") {
+        decisions[task.id] = {
+          status: "remind",
+          date:
+            previous.status === "remind" && previous.date
+              ? previous.date
+              : "",
+          time:
+            previous.status === "remind" && previous.time
+              ? previous.time
+              : ""
         };
+      } else {
+        decisions[task.id] = { status };
       }
 
       render();
     }
 
-
-    function setAdDecision(adId, status) {
-      adDecisions[adId] = {
-        status
-      };
-
+    function setAdDecision(ad, status) {
+      adDecisions[ad.id] = { status };
       render();
     }
 
+    function updateReplyText(taskId, text) {
+      const decision = decisions[taskId];
 
-    function approveReply(taskId, text) {
-      decisions[taskId] = {
-        status: "reply",
-        text,
-        approved: true
-      };
+      if (!decision || decision.status !== "reply") return;
 
+      decision.text = text;
+      decision.approved = false;
+      updateProgress();
+    }
+
+    function approveReply(taskId) {
+      const decision = decisions[taskId];
+
+      if (!decision || decision.status !== "reply") return;
+
+      decision.approved = true;
       render();
     }
 
+    function updateReminder(taskId, field, value) {
+      const decision = decisions[taskId];
 
-    function decisionComplete(task) {
-      const decision =
-        getDecision(task.id);
+      if (!decision || decision.status !== "remind") return;
 
-      if (!decision) {
-        return false;
-      }
+      decision[field] = value;
+      updateProgress();
+      updateReminderError(taskId);
+    }
+
+    function reminderComplete(taskId) {
+      const decision = decisions[taskId];
+
+      return Boolean(
+        decision &&
+        decision.status === "remind" &&
+        decision.date &&
+        decision.time
+      );
+    }
+
+    function taskDecisionComplete(task) {
+      const decision = decisions[task.id];
+
+      if (!decision) return false;
 
       if (decision.status === "reply") {
-        return (
-          decision.approved === true &&
+        return Boolean(
+          decision.approved &&
           typeof decision.text === "string" &&
-          decision.text.trim().length > 0
+          decision.text.trim()
         );
+      }
+
+      if (decision.status === "remind") {
+        return reminderComplete(task.id);
       }
 
       return true;
     }
 
-
     function adDecisionComplete(ad) {
+      const decision = adDecisions[ad.id];
+
       return Boolean(
-        adDecisions[ad.id]
+        decision &&
+        (decision.status === "delete" || decision.status === "keep")
       );
     }
 
-
     function allComplete() {
-      const total =
-        tasks.length + ads.length;
+      const total = tasks.length + ads.length;
 
-      if (total === 0) {
-        return false;
-      }
+      if (total === 0) return false;
 
       return (
-        tasks.every(decisionComplete) &&
+        tasks.every(taskDecisionComplete) &&
         ads.every(adDecisionComplete)
       );
     }
 
+    function updateProgress() {
+      const total = tasks.length + ads.length;
 
-    function renderProgress() {
-      const total =
-        tasks.length + ads.length;
+      const completedTasks =
+        tasks.filter(taskDecisionComplete).length;
 
-      if (!total) {
-        progressElement.textContent = "";
+      const completedAds =
+        ads.filter(adDecisionComplete).length;
+
+      const completed = completedTasks + completedAds;
+
+      const progress = document.getElementById("progress");
+      const submit = document.getElementById("submit");
+
+      if (total === 0) {
+        progress.textContent = "Inga mejl att hantera.";
+        submit.disabled = true;
         return;
       }
 
-      const taskComplete =
-        tasks.filter(decisionComplete).length;
+      progress.textContent =
+        `${completed} av ${total} mejl klara`;
 
-      const adComplete =
-        ads.filter(adDecisionComplete).length;
-
-      progressElement.textContent =
-        `${taskComplete + adComplete} av ${total} klara`;
+      submit.disabled = !allComplete();
     }
 
+    function updateReminderError(taskId) {
+      const error = document.getElementById(
+        `reminder-error-${CSS.escape(taskId)}`
+      );
 
-    function createButton(
-      task,
-      status,
-      decision
-    ) {
-      const config =
-        STATUS_CONFIG[status];
+      if (!error) return;
 
-      const button =
-        document.createElement("button");
+      const decision = decisions[taskId];
 
+      if (!decision || decision.status !== "remind") {
+        error.classList.remove("visible");
+        return;
+      }
+
+      if (decision.date && decision.time) {
+        error.classList.remove("visible");
+      } else {
+        error.classList.add("visible");
+      }
+    }
+
+    function createStatusButton(task, status) {
+      const config = STATUS_CONFIG[status];
+      const decision = decisions[task.id];
+
+      const button = document.createElement("button");
       button.type = "button";
-      button.className = "btn";
       button.textContent = config.label;
 
-      if (status === "skip") {
-        button.classList.add("skip");
+      if (config.className) {
+        button.classList.add(config.className);
+      }
 
-        if (decision?.status === "skip") {
-          button.classList.add(
-            "skip-selected"
-          );
-        }
-      } else if (
-        decision?.status === status
-      ) {
+      if (decision?.status === status) {
         button.classList.add("selected");
       }
 
-      button.addEventListener(
-        "click",
-        () => {
-          setDecision(
-            task.id,
-            status
-          );
-        }
-      );
+      button.addEventListener("click", () => {
+        setDecision(task, status);
+      });
 
       return button;
     }
 
+    function createTaskCard(task) {
+      const card = document.createElement("article");
+      card.className = "card";
 
-    function createAdButton(
-      ad,
-      status,
-      decision
-    ) {
-      const button =
-        document.createElement("button");
+      const meta = buildMeta([
+        task.account,
+        task.received
+      ]);
 
+      card.innerHTML = `
+        <div class="title">${escapeHtml(task.title)}</div>
+        ${meta
+          ? `<div class="meta">${escapeHtml(meta)}</div>`
+          : ""}
+        ${task.summary
+          ? `<div class="summary">${escapeHtml(task.summary)}</div>`
+          : ""}
+      `;
+
+      const buttons = document.createElement("div");
+      buttons.className = "buttons";
+
+      STATUS_ORDER
+        .filter(status => task.statuses.includes(status))
+        .forEach(status => {
+          buttons.appendChild(
+            createStatusButton(task, status)
+          );
+        });
+
+      card.appendChild(buttons);
+
+      const decision = decisions[task.id];
+
+      const replyBox = document.createElement("div");
+      replyBox.className =
+        "reply-box" +
+        (decision?.status === "reply" ? " visible" : "");
+
+      if (decision?.status === "reply") {
+        const textarea = document.createElement("textarea");
+        textarea.value =
+          typeof decision.text === "string"
+            ? decision.text
+            : task.replyDraft || "";
+
+        textarea.addEventListener("input", event => {
+          updateReplyText(task.id, event.target.value);
+        });
+
+        const actions = document.createElement("div");
+        actions.className = "reply-actions";
+
+        const approve = document.createElement("button");
+        approve.type = "button";
+        approve.className = "approve";
+        approve.textContent = decision.approved
+          ? "Svar godkänt"
+          : "Godkänn svar";
+
+        if (decision.approved) {
+          approve.classList.add("selected");
+        }
+
+        approve.addEventListener("click", () => {
+          approveReply(task.id);
+        });
+
+        actions.appendChild(approve);
+        replyBox.appendChild(textarea);
+        replyBox.appendChild(actions);
+      }
+
+      card.appendChild(replyBox);
+
+      const reminderBox = document.createElement("div");
+      reminderBox.className =
+        "reminder-box" +
+        (decision?.status === "remind" ? " visible" : "");
+
+      if (decision?.status === "remind") {
+        reminderBox.innerHTML = `
+          <div class="reminder-fields">
+            <div class="field">
+              <label for="reminder-date-${escapeHtml(task.id)}">
+                Datum
+              </label>
+              <input
+                id="reminder-date-${escapeHtml(task.id)}"
+                type="date"
+              />
+            </div>
+
+            <div class="field">
+              <label for="reminder-time-${escapeHtml(task.id)}">
+                Tid
+              </label>
+              <input
+                id="reminder-time-${escapeHtml(task.id)}"
+                type="time"
+              />
+            </div>
+          </div>
+
+          <div
+            id="reminder-error-${escapeHtml(task.id)}"
+            class="reminder-error"
+          >
+            Välj både datum och tid.
+          </div>
+        `;
+
+        const dateInput =
+          reminderBox.querySelector('input[type="date"]');
+
+        const timeInput =
+          reminderBox.querySelector('input[type="time"]');
+
+        dateInput.value = decision.date || "";
+        timeInput.value = decision.time || "";
+
+        dateInput.addEventListener("change", event => {
+          updateReminder(
+            task.id,
+            "date",
+            event.target.value
+          );
+        });
+
+        timeInput.addEventListener("change", event => {
+          updateReminder(
+            task.id,
+            "time",
+            event.target.value
+          );
+        });
+      }
+
+      card.appendChild(reminderBox);
+
+      return card;
+    }
+
+    function createAdButton(ad, status) {
+      const config = AD_STATUS_CONFIG[status];
+      const decision = adDecisions[ad.id];
+
+      const button = document.createElement("button");
       button.type = "button";
-      button.className =
-        `btn ${status}`;
-
-      button.textContent =
-        AD_STATUS_CONFIG[status].label;
+      button.textContent = config.label;
+      button.classList.add(config.className);
 
       if (decision?.status === status) {
-        button.classList.add(
-          `${status}-selected`
-        );
+        button.classList.add("selected");
       }
 
-      button.addEventListener(
-        "click",
-        () => {
-          setAdDecision(
-            ad.id,
-            status
-          );
-        }
-      );
+      button.addEventListener("click", () => {
+        setAdDecision(ad, status);
+      });
 
       return button;
     }
 
-
-    function createReplyBox(
-      task,
-      decision
-    ) {
-      const box =
-        document.createElement("div");
-
-      box.className =
-        "reply-box visible";
-
-      const label =
-        document.createElement("label");
-
-      label.className =
-        "reply-label";
-
-      label.textContent = "Svar:";
-
-      const textarea =
-        document.createElement("textarea");
-
-      textarea.value =
-        decision?.text ??
-        task.replyDraft ??
-        "";
-
-      const approve =
-        document.createElement("button");
-
-      approve.type = "button";
-      approve.className = "approve";
-
-      const state =
-        document.createElement("span");
-
-      state.className =
-        "reply-state";
-
-      if (decision?.approved === true) {
-        approve.classList.add(
-          "approved"
-        );
-
-        approve.textContent =
-          "Svar godkänt";
-
-        state.textContent =
-          "Klart för att skickas när batchen utförs.";
-      } else {
-        approve.textContent =
-          "Godkänn svar";
-
-        state.textContent =
-          "Du kan redigera texten först.";
-      }
-
-      approve.addEventListener(
-        "click",
-        () => {
-          const text =
-            textarea.value.trim();
-
-          if (!text) {
-            state.textContent =
-              "Svaret får inte vara tomt.";
-            return;
-          }
-
-          approveReply(
-            task.id,
-            text
-          );
-        }
-      );
-
-      textarea.addEventListener(
-        "input",
-        () => {
-          const current =
-            decisions[task.id];
-
-          if (
-            current &&
-            current.status === "reply"
-          ) {
-            current.text =
-              textarea.value;
-
-            current.approved =
-              false;
-
-            approve.classList.remove(
-              "approved"
-            );
-
-            approve.textContent =
-              "Godkänn svar";
-
-            state.textContent =
-              "Texten ändrades – godkänn svaret igen.";
-
-            updateExecuteState();
-            renderProgress();
-          }
-        }
-      );
-
-      box.appendChild(label);
-      box.appendChild(textarea);
-      box.appendChild(approve);
-      box.appendChild(state);
-
-      return box;
-    }
-
-
-    function createChoice(decision) {
-      const choice =
-        document.createElement("div");
-
-      choice.className =
-        "choice visible";
-
-      const label =
-        STATUS_CONFIG[
-          decision.status
-        ]?.label ??
-        decision.status;
-
-      choice.textContent =
-        `Valt: ${label}`;
-
-      if (decision.status === "skip") {
-        choice.classList.add(
-          "noaction-choice"
-        );
-      }
-
-      return choice;
-    }
-
-
-    function createAdChoice(decision) {
-      const choice =
-        document.createElement("div");
-
-      choice.className =
-        "choice visible";
-
-      choice.textContent =
-        `Valt: ${
-          AD_STATUS_CONFIG[
-            decision.status
-          ]?.label ??
-          decision.status
-        }`;
-
-      if (decision.status === "delete") {
-        choice.classList.add(
-          "delete-choice"
-        );
-      }
-
-      if (decision.status === "keep") {
-        choice.classList.add(
-          "keep-choice"
-        );
-      }
-
-      return choice;
-    }
-
-
-    function createCard(task) {
-      const decision =
-        getDecision(task.id);
-
-      const card =
-        document.createElement("article");
-
-      card.className = "card";
-
-      if (decision) {
-        if (decision.status === "skip") {
-          card.classList.add("noaction");
-        } else {
-          card.classList.add("decided");
-        }
-      }
-
-      const title =
-        document.createElement("div");
-
-      title.className = "title";
-      title.textContent = task.title;
-
-      const meta =
-        document.createElement("div");
-
-      meta.className = "meta";
-
-      const metaParts = [];
-
-      if (task.account) {
-        metaParts.push(task.account);
-      }
-
-      if (task.received) {
-        metaParts.push(task.received);
-      }
-
-      meta.textContent =
-        metaParts.join(" · ");
-
-      const summary =
-        document.createElement("div");
-
-      summary.className = "summary";
-      summary.textContent = task.summary;
-
-      const buttons =
-        document.createElement("div");
-
-      buttons.className = "buttons";
-
-      task.statuses.forEach(
-        status => {
-          buttons.appendChild(
-            createButton(
-              task,
-              status,
-              decision
-            )
-          );
-        }
-      );
-
-      card.appendChild(title);
-
-      if (
-        task.account ||
-        task.received
-      ) {
-        card.appendChild(meta);
-      }
-
-      if (task.summary) {
-        card.appendChild(summary);
-      }
-
-      card.appendChild(buttons);
-
-      if (
-        decision?.status === "reply"
-      ) {
-        card.appendChild(
-          createReplyBox(
-            task,
-            decision
-          )
-        );
-      }
-
-      if (
-        decision &&
-        decision.status !== "reply"
-      ) {
-        card.appendChild(
-          createChoice(decision)
-        );
-      }
-
-      return card;
-    }
-
-
     function createAdCard(ad) {
-      const decision =
-        adDecisions[ad.id] || null;
-
-      const card =
-        document.createElement("article");
-
+      const card = document.createElement("article");
       card.className = "card";
 
-      if (decision?.status === "delete") {
-        card.classList.add(
-          "delete-selected"
-        );
-      }
+      const meta = buildMeta([
+        ad.sender,
+        ad.account,
+        ad.received
+      ]);
 
-      if (decision?.status === "keep") {
-        card.classList.add(
-          "keep-selected"
-        );
-      }
+      card.innerHTML = `
+        <div class="title">${escapeHtml(ad.title)}</div>
+        ${meta
+          ? `<div class="meta">${escapeHtml(meta)}</div>`
+          : ""}
+        ${ad.summary
+          ? `<div class="summary">${escapeHtml(ad.summary)}</div>`
+          : ""}
+      `;
 
-      const title =
-        document.createElement("div");
-
-      title.className = "title";
-      title.textContent = ad.title;
-
-      const meta =
-        document.createElement("div");
-
-      meta.className = "meta";
-
-      const metaParts = [];
-
-      if (ad.sender) {
-        metaParts.push(ad.sender);
-      }
-
-      if (ad.account) {
-        metaParts.push(ad.account);
-      }
-
-      if (ad.received) {
-        metaParts.push(ad.received);
-      }
-
-      meta.textContent =
-        metaParts.join(" · ");
-
-      const summary =
-        document.createElement("div");
-
-      summary.className = "summary";
-      summary.textContent = ad.summary;
-
-      const buttons =
-        document.createElement("div");
-
+      const buttons = document.createElement("div");
       buttons.className = "buttons";
 
-      buttons.appendChild(
-        createAdButton(
-          ad,
-          "delete",
-          decision
-        )
-      );
-
-      buttons.appendChild(
-        createAdButton(
-          ad,
-          "keep",
-          decision
-        )
-      );
-
-      card.appendChild(title);
-
-      if (
-        ad.sender ||
-        ad.account ||
-        ad.received
-      ) {
-        card.appendChild(meta);
-      }
-
-      if (ad.summary) {
-        card.appendChild(summary);
-      }
+      buttons.appendChild(createAdButton(ad, "delete"));
+      buttons.appendChild(createAdButton(ad, "keep"));
 
       card.appendChild(buttons);
 
-      if (decision) {
-        card.appendChild(
-          createAdChoice(decision)
-        );
-      }
-
       return card;
     }
-
-
-    function updateExecuteState() {
-      executeElement.disabled =
-        !allComplete();
-    }
-
 
     function render() {
-      tasksElement.innerHTML = "";
-      adsElement.innerHTML = "";
+      const taskList = document.getElementById("task-list");
+      const adList = document.getElementById("ad-list");
 
-      if (!tasks.length) {
-        tasksElement.innerHTML =
-          `
-            <div class="empty">
-              Inga vanliga mejl att hantera.
-            </div>
-          `;
+      taskList.innerHTML = "";
+      adList.innerHTML = "";
+
+      if (tasks.length === 0) {
+        const empty = document.createElement("div");
+        empty.className = "empty";
+        empty.style.marginTop = "10px";
+        empty.textContent = "Inga relevanta mejl just nu.";
+        taskList.appendChild(empty);
       } else {
-        tasks.forEach(
-          task => {
-            tasksElement.appendChild(
-              createCard(task)
-            );
-          }
-        );
+        tasks.forEach(task => {
+          taskList.appendChild(createTaskCard(task));
+        });
       }
 
-      if (!ads.length) {
-        adsElement.innerHTML =
-          `
-            <div class="empty">
-              Ingen reklam identifierad.
-            </div>
-          `;
+      if (ads.length === 0) {
+        const empty = document.createElement("div");
+        empty.className = "empty";
+        empty.style.marginTop = "10px";
+        empty.textContent = "Ingen identifierad reklam just nu.";
+        adList.appendChild(empty);
       } else {
-        ads.forEach(
-          ad => {
-            adsElement.appendChild(
-              createAdCard(ad)
-            );
-          }
-        );
+        ads.forEach(ad => {
+          adList.appendChild(createAdCard(ad));
+        });
       }
 
-      renderProgress();
-      updateExecuteState();
+      updateProgress();
+
+      tasks.forEach(task => {
+        if (decisions[task.id]?.status === "remind") {
+          updateReminderError(task.id);
+        }
+      });
     }
 
-
-    function buildBatchPayload() {
+    function buildBatch() {
       const actions = [];
       const skipped = [];
       const adActions = [];
 
-      tasks.forEach(
-        task => {
-          const decision =
-            decisions[task.id];
+      tasks.forEach(task => {
+        const decision = decisions[task.id];
 
-          if (!decision) {
-            return;
-          }
+        if (!decision) return;
 
-          if (decision.status === "skip") {
-            skipped.push({
-              id: task.id,
-              title: task.title,
-              account: task.account
-            });
-
-            return;
-          }
-
-          const action = {
+        if (decision.status === "skip") {
+          skipped.push({
             id: task.id,
             title: task.title,
-            account: task.account,
-            status: decision.status
-          };
-
-          if (decision.status === "reply") {
-            action.text =
-              decision.text;
-
-            action.approved =
-              decision.approved === true;
-          }
-
-          actions.push(action);
-        }
-      );
-
-      ads.forEach(
-        ad => {
-          const decision =
-            adDecisions[ad.id];
-
-          if (!decision) {
-            return;
-          }
-
-          adActions.push({
-            id: ad.id,
-            title: ad.title,
-            sender: ad.sender,
-            account: ad.account,
-            status: decision.status
+            account: task.account
           });
+
+          return;
         }
-      );
+
+        const action = {
+          id: task.id,
+          title: task.title,
+          account: task.account,
+          status: decision.status
+        };
+
+        if (decision.status === "reply") {
+          action.text = decision.text;
+          action.approved = true;
+        }
+
+        if (decision.status === "remind") {
+          action.reminder = {
+            date: decision.date,
+            time: decision.time
+          };
+        }
+
+        actions.push(action);
+      });
+
+      ads.forEach(ad => {
+        const decision = adDecisions[ad.id];
+
+        if (!decision) return;
+
+        adActions.push({
+          id: ad.id,
+          title: ad.title,
+          sender: ad.sender,
+          account: ad.account,
+          status: decision.status
+        });
+      });
 
       return {
         source: "Mejlcentralen",
@@ -1226,21 +866,22 @@
       };
     }
 
-
     async function sendBatch() {
       if (!allComplete()) {
+        tasks.forEach(task => {
+          if (decisions[task.id]?.status === "remind") {
+            updateReminderError(task.id);
+          }
+        });
+
         return;
       }
 
-      const payload =
-        buildBatchPayload();
+      const batch = buildBatch();
 
       const message =
-        `MEJLCENTRAL_BATCH ${JSON.stringify(payload)}`;
-
-      executeElement.disabled = true;
-      executeElement.textContent =
-        "Skickar…";
+        "MEJLCENTRAL_BATCH " +
+        JSON.stringify(batch);
 
       try {
         if (
@@ -1250,183 +891,132 @@
           await window.openai.sendFollowUpMessage({
             prompt: message
           });
+
+          return;
         }
-
-        else if (
-          window.parent &&
-          window.parent !== window
-        ) {
-          window.parent.postMessage(
-            {
-              type: "ui/message",
-              message
-            },
-            "*"
-          );
-        }
-
-        else {
-          throw new Error(
-            "Ingen tillgänglig kanal till ChatGPT."
-          );
-        }
-
-        tasksElement.innerHTML =
-          `
-            <div class="sent">
-              <strong>
-                Åtgärderna har skickats till ChatGPT.
-              </strong>
-              ChatGPT utför nu de val du godkänt.
-            </div>
-          `;
-
-        adsElement.innerHTML = "";
-
-        footerElement.style.display =
-          "none";
-
-        progressElement.textContent = "";
-
       } catch (error) {
-        console.error(error);
+        console.error(
+          "sendFollowUpMessage failed:",
+          error
+        );
+      }
 
-        executeElement.disabled = false;
-
-        executeElement.textContent =
-          "Utför åtgärder";
-
-        alert(
-          "Det gick inte att skicka åtgärderna till ChatGPT. Försök igen."
+      try {
+        window.parent.postMessage(
+          {
+            type: "openai:send_follow_up_message",
+            prompt: message
+          },
+          "*"
+        );
+      } catch (error) {
+        console.error(
+          "Fallback postMessage failed:",
+          error
         );
       }
     }
 
-
-    executeElement.addEventListener(
-      "click",
-      sendBatch
-    );
-
-
-    function extractToolOutput(output) {
-      if (!output) {
-        return null;
+    function extractToolOutput(value) {
+      if (!value || typeof value !== "object") {
+        return {
+          tasks: [],
+          ads: []
+        };
       }
 
       if (
-        Array.isArray(output.tasks) ||
-        Array.isArray(output.ads)
+        Array.isArray(value.tasks) ||
+        Array.isArray(value.ads)
       ) {
         return {
-          tasks:
-            Array.isArray(output.tasks)
-              ? output.tasks
-              : [],
-
-          ads:
-            Array.isArray(output.ads)
-              ? output.ads
-              : []
+          tasks: Array.isArray(value.tasks)
+            ? value.tasks
+            : [],
+          ads: Array.isArray(value.ads)
+            ? value.ads
+            : []
         };
       }
 
-      if (output.structuredContent) {
+      if (
+        value.structuredContent &&
+        typeof value.structuredContent === "object"
+      ) {
         return {
-          tasks:
-            Array.isArray(
-              output.structuredContent.tasks
-            )
-              ? output.structuredContent.tasks
-              : [],
-
-          ads:
-            Array.isArray(
-              output.structuredContent.ads
-            )
-              ? output.structuredContent.ads
-              : []
+          tasks: Array.isArray(
+            value.structuredContent.tasks
+          )
+            ? value.structuredContent.tasks
+            : [],
+          ads: Array.isArray(
+            value.structuredContent.ads
+          )
+            ? value.structuredContent.ads
+            : []
         };
       }
 
-      return null;
+      return {
+        tasks: [],
+        ads: []
+      };
     }
 
+    function applyOutput(value) {
+      const output = extractToolOutput(value);
 
-    function readToolOutput() {
-      return extractToolOutput(
-        window.openai?.toolOutput
-      );
-    }
+      tasks = normalizeTasks(output.tasks);
+      ads = normalizeAds(output.ads);
 
+      Object.keys(decisions).forEach(key => {
+        delete decisions[key];
+      });
 
-    function applyOutput(output) {
-      if (!output) {
-        return;
-      }
+      Object.keys(adDecisions).forEach(key => {
+        delete adDecisions[key];
+      });
 
-      tasks =
-        normalizeTasks(
-          output.tasks
-        );
-
-      ads =
-        normalizeAds(
-          output.ads
-        );
+      tasks.forEach(task => {
+        if (task.done) {
+          decisions[task.id] = {
+            status: "done"
+          };
+        }
+      });
 
       render();
     }
 
-
-    function initialize() {
-      const initial =
-        readToolOutput();
-
-      if (initial) {
-        applyOutput(initial);
-      }
-    }
-
-
-    initialize();
-
+    document
+      .getElementById("submit")
+      .addEventListener("click", sendBatch);
 
     window.addEventListener(
       "openai:set_globals",
       event => {
-        const globals =
-          event?.detail?.globals;
+        const globals = event?.detail?.globals;
 
-        if (!globals) {
+        if (!globals) return;
+
+        if (globals.toolOutput) {
+          applyOutput(globals.toolOutput);
           return;
         }
 
-        const incoming =
-          extractToolOutput(
-            globals.toolOutput
-          );
-
-        if (incoming) {
-          applyOutput(incoming);
+        if (globals.tool_output) {
+          applyOutput(globals.tool_output);
         }
       }
     );
 
-
-    setTimeout(
-      () => {
-        if (
-          tasks.length === 0 &&
-          ads.length === 0 &&
-          !window.openai?.toolOutput
-        ) {
-          render();
-        }
-      },
-      400
-    );
+    if (window.openai?.toolOutput) {
+      applyOutput(window.openai.toolOutput);
+    } else if (window.openai?.tool_output) {
+      applyOutput(window.openai.tool_output);
+    } else {
+      render();
+    }
   </script>
-
 </body>
 </html>
