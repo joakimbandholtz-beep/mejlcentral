@@ -1,0 +1,65 @@
+<!doctype html>
+<html lang="sv">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Mejlcentralen</title>
+  <style>
+    :root{font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;color:#171717;background:transparent}
+    *{box-sizing:border-box} body{margin:0;padding:12px;background:transparent}
+    .shell{max-width:760px;margin:0 auto;display:grid;gap:10px}
+    .head{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:4px 2px}
+    h1{font-size:18px;margin:0}.sub{font-size:12px;color:#666;margin-top:2px}
+    .count{font-size:12px;padding:5px 9px;border:1px solid #ddd;border-radius:999px;background:#fff}
+    .empty{padding:22px;text-align:center;border:1px solid #e7e7e7;border-radius:14px;background:#fff;color:#666}
+    .card{border:1px solid #e3e3e3;border-radius:16px;background:#fff;padding:14px;box-shadow:0 1px 2px rgba(0,0,0,.03)}
+    .top{display:flex;gap:10px;align-items:flex-start}.box{width:22px;height:22px;border:2px solid #bbb;border-radius:6px;flex:0 0 auto;margin-top:1px;display:grid;place-items:center;cursor:pointer;background:white}.box.done{background:#171717;border-color:#171717;color:#fff}.title{font-weight:700;font-size:15px;line-height:1.25}.meta{font-size:12px;color:#737373;margin-top:3px}.summary{font-size:13px;line-height:1.45;margin:11px 0 12px;color:#333}.badges{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:11px}.badge{font-size:11px;padding:4px 7px;border-radius:999px;background:#f3f3f3;color:#555}.actions{display:flex;flex-wrap:wrap;gap:7px}.btn{border:1px solid #d7d7d7;border-radius:10px;padding:8px 11px;background:#fff;font-size:13px;font-weight:650;cursor:pointer}.btn:hover{background:#f7f7f7}.btn.primary{background:#171717;color:#fff;border-color:#171717}.btn.active{outline:2px solid #cfcfcf}.compose{margin-top:11px;padding-top:11px;border-top:1px solid #eee;display:none}.compose.show{display:block}.compose textarea{width:100%;min-height:118px;resize:vertical;border:1px solid #d8d8d8;border-radius:10px;padding:10px;font:inherit;font-size:13px}.compose .row{display:flex;gap:7px;margin-top:8px}.reminder{margin-top:11px;padding-top:11px;border-top:1px solid #eee;display:none;gap:8px;align-items:center}.reminder.show{display:flex}.reminder input{flex:1;border:1px solid #d8d8d8;border-radius:10px;padding:9px;font:inherit;font-size:13px}.status{font-size:12px;color:#666;margin-top:8px;min-height:16px}
+  </style>
+</head>
+<body>
+<main class="shell">
+  <div class="head"><div><h1>Mejl – att göra</h1><div class="sub">Klicka på åtgärd. Du behöver inte skriva.</div></div><div class="count" id="count">0 öppna</div></div>
+  <div id="list"></div>
+</main>
+<script type="module">
+  const listEl=document.querySelector('#list'); const countEl=document.querySelector('#count');
+  let tasks=[]; let rpcId=0; const pending=new Map(); let bridgeReady;
+  const notify=(method,params)=>window.parent.postMessage({jsonrpc:'2.0',method,params},'*');
+  const request=(method,params)=>new Promise((resolve,reject)=>{const id=++rpcId;pending.set(id,{resolve,reject});window.parent.postMessage({jsonrpc:'2.0',id,method,params},'*')});
+  window.addEventListener('message',e=>{if(e.source!==window.parent)return;const m=e.data;if(!m||m.jsonrpc!=='2.0')return;if(typeof m.id==='number'){const p=pending.get(m.id);if(!p)return;pending.delete(m.id);m.error?p.reject(m.error):p.resolve(m.result);return}if(m.method==='ui/notifications/tool-result') update(m.params);if(m.method==='ui/notifications/tool-input') updateInput(m.params);},{passive:true});
+  async function init(){await request('ui/initialize',{appInfo:{name:'mejlcentral',version:'0.1.0'},appCapabilities:{},protocolVersion:'2026-01-26'});notify('ui/notifications/initialized',{})}
+  bridgeReady=init().catch(()=>{});
+  function update(r){const t=r?.structuredContent?.tasks;if(Array.isArray(t)){tasks=t;render()}}
+  function updateInput(r){const t=r?.arguments?.tasks||r?.tasks;if(Array.isArray(t)){tasks=t;render()}}
+  function escapeHtml(s=''){return s.replace(/[&<>'"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#039;','"':'&quot;'}[c]))}
+  function label(a){return {reply:'Svara',done:'Klar',wait:'Vänta',watch:'Bevaka',remind:'Påminn'}[a]||a}
+  async function followup(task,action,extra={}){
+    await bridgeReady;
+    const payload={source:'Mejlcentralen',taskId:task.id,title:task.title,account:task.account,action,...extra};
+    try{await request('ui/message',{role:'user',content:[{type:'text',text:`MEJLCENTRAL_ACTION ${JSON.stringify(payload)}`} ]})}
+    catch{ if(window.openai?.sendFollowUpMessage) await window.openai.sendFollowUpMessage({prompt:`MEJLCENTRAL_ACTION ${JSON.stringify(payload)}`}); }
+  }
+  function render(){
+    const open=tasks.filter(t=>!t.done);countEl.textContent=`${open.length} öppna`;listEl.innerHTML='';
+    if(!open.length){listEl.innerHTML='<div class="empty">Inga öppna mejluppgifter.</div>';return}
+    open.forEach((t,i)=>{
+      const el=document.createElement('section');el.className='card';el.dataset.id=t.id;
+      const statuses=(t.statuses||[]).map(s=>`<span class="badge">${escapeHtml(label(s))}</span>`).join('');
+      el.innerHTML=`<div class="top"><button class="box" data-action="done" aria-label="Klar">✓</button><div><div class="title">${i+1}. ${escapeHtml(t.title)}</div><div class="meta">${escapeHtml(t.account||'')} ${t.received?`· ${escapeHtml(t.received)}`:''}</div></div></div><div class="summary">${escapeHtml(t.summary||'')}</div><div class="badges">${statuses}</div><div class="actions"><button class="btn primary" data-action="reply">Svara</button><button class="btn" data-action="done">Klar</button><button class="btn" data-action="wait">Vänta</button><button class="btn" data-action="watch">Bevaka</button><button class="btn" data-action="remind">Påminn</button></div><div class="compose"><textarea placeholder="Svarstext">${escapeHtml(t.replyDraft||'')}</textarea><div class="row"><button class="btn primary send">Skicka</button><button class="btn cancel">Avbryt</button></div></div><div class="reminder"><input type="datetime-local"><button class="btn primary set-reminder">Sätt påminnelse</button></div><div class="status"></div>`;
+      listEl.appendChild(el);
+      el.addEventListener('click',async ev=>{
+        const b=ev.target.closest('button');if(!b)return;const action=b.dataset.action;
+        const compose=el.querySelector('.compose'),rem=el.querySelector('.reminder'),status=el.querySelector('.status');
+        if(action==='reply'){compose.classList.add('show');rem.classList.remove('show');return}
+        if(action==='remind'){rem.classList.add('show');compose.classList.remove('show');return}
+        if(b.classList.contains('cancel')){compose.classList.remove('show');return}
+        if(b.classList.contains('send')){const text=el.querySelector('textarea').value.trim();status.textContent='Skickar åtgärd till ChatGPT…';await followup(t,'send_reply',{text});status.textContent='Klart – inväntar bekräftelse i chatten.';return}
+        if(b.classList.contains('set-reminder')){const when=el.querySelector('input').value;if(!when)return;status.textContent='Sätter påminnelse…';await followup(t,'remind',{when});status.textContent='Påminnelse skickad till ChatGPT.';return}
+        if(['done','wait','watch'].includes(action)){status.textContent=`${label(action)}…`;await followup(t,action);status.textContent='Åtgärden skickad till ChatGPT.'}
+      });
+    });
+  }
+  render();
+</script>
+</body>
+</html>
