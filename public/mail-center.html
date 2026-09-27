@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Mejlcentralen v7</title>
+  <title>Mejlcentralen v8</title>
 
   <style>
     :root {
@@ -244,6 +244,11 @@
       text-align: center;
     }
 
+    /*
+     * V8:
+     * Knappen är medvetet neutral/grå tills
+     * alla mejl har ett färdigt val.
+     */
     .submit {
       width: 100%;
       padding: 11px 14px;
@@ -259,6 +264,9 @@
         opacity 0.15s ease;
     }
 
+    /*
+     * Alla val är klara.
+     */
     .submit.ready {
       border-color: var(--green);
       background: var(--green);
@@ -266,6 +274,9 @@
       cursor: pointer;
     }
 
+    /*
+     * Klick har registrerats och batchen skickas.
+     */
     .submit.sending {
       border-color: var(--green);
       background: var(--green);
@@ -274,6 +285,9 @@
       opacity: 0.72;
     }
 
+    /*
+     * Batchen har skickats från widgeten.
+     */
     .submit.sent {
       border-color: var(--green);
       background: var(--green-soft);
@@ -299,7 +313,7 @@
 
 <body>
   <main class="app">
-    <h1>Mejlcentralen v7</h1>
+    <h1>Mejlcentralen v8</h1>
 
     <div class="intro">
       Välj vad som ska göras med varje mejl. Inget utförs förrän du
@@ -345,14 +359,29 @@
   </main>
 
   <script>
-    const APP_VERSION = "0.7.1";
+    const APP_VERSION = "0.8.0";
 
     const STATUS_CONFIG = {
-      reply: { label: "Svara" },
-      done: { label: "Klar" },
-      wait: { label: "Vänta" },
-      watch: { label: "Bevaka" },
-      remind: { label: "Påminn" },
+      reply: {
+        label: "Svara"
+      },
+
+      done: {
+        label: "Klar"
+      },
+
+      wait: {
+        label: "Vänta"
+      },
+
+      watch: {
+        label: "Bevaka"
+      },
+
+      remind: {
+        label: "Påminn"
+      },
+
       skip: {
         label: "Ingen åtgärd",
         className: "skip"
@@ -386,6 +415,11 @@
     const decisions = {};
     const adDecisions = {};
 
+    /*
+     * idle    = ännu inte skickad
+     * sending = användaren har klickat
+     * sent    = batchen har skickats från widgeten
+     */
     let submitState = "idle";
 
     function markChanged() {
@@ -514,10 +548,8 @@
           status: "reply",
 
           text:
-            previous.status ===
-              "reply" &&
-            typeof previous.text ===
-              "string"
+            previous.status === "reply" &&
+            typeof previous.text === "string"
               ? previous.text
               : task.replyDraft || "",
 
@@ -532,14 +564,12 @@
           status: "remind",
 
           date:
-            previous.status ===
-              "remind"
+            previous.status === "remind"
               ? previous.date || ""
               : "",
 
           time:
-            previous.status ===
-              "remind"
+            previous.status === "remind"
               ? previous.time || ""
               : ""
         };
@@ -642,8 +672,7 @@
 
       return Boolean(
         decision &&
-        decision.status ===
-          "remind" &&
+        decision.status === "remind" &&
         decision.date &&
         decision.time
       );
@@ -664,15 +693,13 @@
       ) {
         return Boolean(
           decision.approved &&
-          typeof decision.text ===
-            "string" &&
+          typeof decision.text === "string" &&
           decision.text.trim()
         );
       }
 
       if (
-        decision.status ===
-        "remind"
+        decision.status === "remind"
       ) {
         return reminderComplete(
           task.id
@@ -691,10 +718,8 @@
       return Boolean(
         decision &&
         (
-          decision.status ===
-            "delete" ||
-          decision.status ===
-            "keep"
+          decision.status === "delete" ||
+          decision.status === "keep"
         )
       );
     }
@@ -734,11 +759,14 @@
         submitState === "sending"
       ) {
         submit.disabled = true;
+
         submit.classList.add(
           "sending"
         );
+
         submit.textContent =
           "Utför åtgärder…";
+
         return;
       }
 
@@ -746,25 +774,32 @@
         submitState === "sent"
       ) {
         submit.disabled = true;
+
         submit.classList.add(
           "sent"
         );
+
         submit.textContent =
           "✓ Åtgärder skickade";
+
         return;
       }
 
       if (allComplete()) {
         submit.disabled = false;
+
         submit.classList.add(
           "ready"
         );
+
         submit.textContent =
           "Utför åtgärder";
+
         return;
       }
 
       submit.disabled = true;
+
       submit.textContent =
         "Utför åtgärder";
     }
@@ -872,8 +907,7 @@
       }
 
       if (
-        decision?.status ===
-        status
+        decision?.status === status
       ) {
         button.classList.add(
           "selected"
@@ -923,9 +957,7 @@
         ${
           task.summary
             ? `<div class="summary">
-                ${escapeHtml(
-                  task.summary
-                )}
+                ${escapeHtml(task.summary)}
                </div>`
             : ""
         }
@@ -963,8 +995,7 @@
         decisions[task.id];
 
       if (
-        decision?.status ===
-        "reply"
+        decision?.status === "reply"
       ) {
         const replyBox =
           document.createElement(
@@ -1049,8 +1080,7 @@
       }
 
       if (
-        decision?.status ===
-        "remind"
+        decision?.status === "remind"
       ) {
         const reminderBox =
           document.createElement(
@@ -1235,8 +1265,7 @@
       );
 
       if (
-        decision?.status ===
-        status
+        decision?.status === status
       ) {
         button.classList.add(
           "selected"
@@ -1287,9 +1316,7 @@
         ${
           ad.summary
             ? `<div class="summary">
-                ${escapeHtml(
-                  ad.summary
-                )}
+                ${escapeHtml(ad.summary)}
                </div>`
             : ""
         }
@@ -1338,9 +1365,7 @@
       taskList.innerHTML = "";
       adList.innerHTML = "";
 
-      if (
-        tasks.length === 0
-      ) {
+      if (tasks.length === 0) {
         const empty =
           document.createElement(
             "div"
@@ -1366,9 +1391,7 @@
         });
       }
 
-      if (
-        ads.length === 0
-      ) {
+      if (ads.length === 0) {
         const empty =
           document.createElement(
             "div"
@@ -1399,8 +1422,7 @@
       tasks.forEach(task => {
         if (
           decisions[task.id]
-            ?.status ===
-          "remind"
+            ?.status === "remind"
         ) {
           updateReminderError(
             task.id
@@ -1423,8 +1445,7 @@
         }
 
         if (
-          decision.status ===
-          "skip"
+          decision.status === "skip"
         ) {
           skipped.push({
             id: task.id,
@@ -1446,8 +1467,7 @@
         };
 
         if (
-          decision.status ===
-          "reply"
+          decision.status === "reply"
         ) {
           action.text =
             decision.text;
@@ -1457,8 +1477,7 @@
         }
 
         if (
-          decision.status ===
-          "remind"
+          decision.status === "remind"
         ) {
           action.reminder = {
             date:
@@ -1497,7 +1516,7 @@
 
         type: "batch",
 
-        version: 7,
+        version: 8,
 
         appVersion:
           APP_VERSION,
@@ -1517,8 +1536,7 @@
         tasks.forEach(task => {
           if (
             decisions[task.id]
-              ?.status ===
-            "remind"
+              ?.status === "remind"
           ) {
             updateReminderError(
               task.id
@@ -1529,6 +1547,10 @@
         return;
       }
 
+      /*
+       * Ändra knappen DIREKT vid klick,
+       * innan något nätverksanrop görs.
+       */
       submitState = "sending";
       updateProgress();
 
@@ -1606,25 +1628,17 @@
       }
 
       if (
-        Array.isArray(
-          value.tasks
-        ) ||
-        Array.isArray(
-          value.ads
-        )
+        Array.isArray(value.tasks) ||
+        Array.isArray(value.ads)
       ) {
         return {
           tasks:
-            Array.isArray(
-              value.tasks
-            )
+            Array.isArray(value.tasks)
               ? value.tasks
               : [],
 
           ads:
-            Array.isArray(
-              value.ads
-            )
+            Array.isArray(value.ads)
               ? value.ads
               : []
         };
@@ -1632,31 +1646,22 @@
 
       if (
         value.structuredContent &&
-        typeof value
-          .structuredContent ===
+        typeof value.structuredContent ===
           "object"
       ) {
         return {
           tasks:
             Array.isArray(
-              value
-                .structuredContent
-                .tasks
+              value.structuredContent.tasks
             )
-              ? value
-                  .structuredContent
-                  .tasks
+              ? value.structuredContent.tasks
               : [],
 
           ads:
             Array.isArray(
-              value
-                .structuredContent
-                .ads
+              value.structuredContent.ads
             )
-              ? value
-                  .structuredContent
-                  .ads
+              ? value.structuredContent.ads
               : []
         };
       }
