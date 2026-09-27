@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Mejlcentralen v8</title>
+  <title>Mejlcentralen v8.1</title>
 
   <style>
     :root {
@@ -87,9 +87,6 @@
         border-color 0.15s ease;
     }
 
-    /*
-     * Hela kortet visar tydligt vilket beslut som är valt.
-     */
     .card.decision-green {
       border-color: var(--green);
       background: var(--green-soft);
@@ -196,20 +193,29 @@
       line-height: 1.45;
     }
 
-    .reply-actions {
-      margin-top: 8px;
+    .reply-actions,
+    .reminder-actions {
+      margin-top: 10px;
     }
 
-    .approve.selected {
+    .approve.selected,
+    .approve-reminder.selected {
       border-color: var(--green);
       background: var(--green-soft);
       color: var(--green);
     }
 
     .reminder-title {
-      margin-bottom: 10px;
+      margin-bottom: 4px;
       font-size: 13px;
       font-weight: 700;
+    }
+
+    .reminder-help {
+      margin-bottom: 10px;
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.4;
     }
 
     .reminder-fields {
@@ -250,6 +256,18 @@
       display: block;
     }
 
+    .reminder-confirmed {
+      display: none;
+      margin-top: 8px;
+      color: var(--green);
+      font-size: 12px;
+      font-weight: 600;
+    }
+
+    .reminder-confirmed.visible {
+      display: block;
+    }
+
     .footer {
       position: sticky;
       bottom: 0;
@@ -280,9 +298,6 @@
         opacity 0.15s ease;
     }
 
-    /*
-     * Alla val är klara och batchen kan skickas.
-     */
     .submit.ready {
       border-color: var(--green);
       background: var(--green);
@@ -290,9 +305,6 @@
       cursor: pointer;
     }
 
-    /*
-     * Klick har registrerats.
-     */
     .submit.sending {
       border-color: var(--green);
       background: var(--green);
@@ -301,10 +313,6 @@
       opacity: 0.72;
     }
 
-    /*
-     * Batchen är skickad från widgeten.
-     * Knappen förblir låst och ska inte bli aktiv igen.
-     */
     .submit.sent {
       border-color: var(--green);
       background: var(--green-soft);
@@ -330,7 +338,7 @@
 
 <body>
   <main class="app">
-    <h1>Mejlcentralen v8</h1>
+    <h1>Mejlcentralen v8.1</h1>
 
     <div class="intro">
       Välj vad som ska göras med varje mejl. Inget utförs förrän du
@@ -432,18 +440,9 @@
     const decisions = {};
     const adDecisions = {};
 
-    /*
-     * idle    = batchen kan redigeras
-     * sending = användaren har klickat på Utför åtgärder
-     * sent    = batchen har skickats och är låst
-     */
     let submitState = "idle";
 
     function markChanged() {
-      /*
-       * När en batch väl är skickad ska den inte öppnas
-       * igen genom ytterligare klick eller återrendering.
-       */
       if (
         submitState === "sent" ||
         submitState === "sending"
@@ -452,6 +451,35 @@
       }
 
       return true;
+    }
+
+    function pad2(value) {
+      return String(value).padStart(2, "0");
+    }
+
+    /*
+     * Standard för Påminn:
+     * nästa kalenderdag kl. 09:00.
+     *
+     * Vi bygger datumet lokalt i webbläsaren så att
+     * det inte påverkas av UTC-datum.
+     */
+    function defaultReminderDate() {
+      const date = new Date();
+
+      date.setDate(
+        date.getDate() + 1
+      );
+
+      return [
+        date.getFullYear(),
+        pad2(date.getMonth() + 1),
+        pad2(date.getDate())
+      ].join("-");
+    }
+
+    function defaultReminderTime() {
+      return "09:00";
     }
 
     function normalizeTasks(input) {
@@ -589,14 +617,22 @@
           status: "remind",
 
           date:
-            previous.status === "remind"
-              ? previous.date || ""
-              : "",
+            previous.status === "remind" &&
+            previous.date
+              ? previous.date
+              : defaultReminderDate(),
 
           time:
-            previous.status === "remind"
-              ? previous.time || ""
-              : ""
+            previous.status === "remind" &&
+            previous.time
+              ? previous.time
+              : defaultReminderTime(),
+
+          /*
+           * Datum och tid är bara förslag tills
+           * användaren uttryckligen godkänner dem.
+           */
+          approved: false
         };
       }
 
@@ -645,7 +681,7 @@
       decision.text = text;
       decision.approved = false;
 
-      updateProgress();
+      render();
     }
 
     function approveReply(
@@ -661,6 +697,13 @@
       if (
         !decision ||
         decision.status !== "reply"
+      ) {
+        return;
+      }
+
+      if (
+        typeof decision.text !== "string" ||
+        !decision.text.trim()
       ) {
         return;
       }
@@ -691,11 +734,60 @@
 
       decision[field] = value;
 
-      updateProgress();
+      /*
+       * Om datum eller tid ändras efter ett tidigare
+       * godkännande måste användaren godkänna igen.
+       */
+      decision.approved = false;
 
-      updateReminderError(
-        taskId
+      render();
+    }
+
+    function reminderFieldsComplete(
+      taskId
+    ) {
+      const decision =
+        decisions[taskId];
+
+      return Boolean(
+        decision &&
+        decision.status === "remind" &&
+        decision.date &&
+        decision.time
       );
+    }
+
+    function approveReminder(
+      taskId
+    ) {
+      if (!markChanged()) {
+        return;
+      }
+
+      const decision =
+        decisions[taskId];
+
+      if (
+        !decision ||
+        decision.status !== "remind"
+      ) {
+        return;
+      }
+
+      if (
+        !decision.date ||
+        !decision.time
+      ) {
+        updateReminderError(
+          taskId
+        );
+
+        return;
+      }
+
+      decision.approved = true;
+
+      render();
     }
 
     function reminderComplete(
@@ -708,7 +800,8 @@
         decision &&
         decision.status === "remind" &&
         decision.date &&
-        decision.time
+        decision.time &&
+        decision.approved
       );
     }
 
@@ -898,12 +991,10 @@
         return;
       }
 
-      const decision =
-        decisions[taskId];
-
       if (
-        decision?.date &&
-        decision?.time
+        reminderFieldsComplete(
+          taskId
+        )
       ) {
         error.classList.remove(
           "visible"
@@ -980,10 +1071,17 @@
         decisions[task.id];
 
       /*
-       * Alla normala beslut visas grönt.
-       * Ingen åtgärd visas gult.
+       * Ett Påminn-val blir inte grönt bara för att
+       * knappen har tryckts. Datum och tid måste först
+       * godkännas.
+       *
+       * Samma princip gäller Svara: svaret måste vara
+       * godkänt innan kortet räknas som färdigt.
        */
-      if (currentDecision) {
+      if (
+        currentDecision &&
+        taskDecisionComplete(task)
+      ) {
         if (
           currentDecision.status ===
           "skip"
@@ -1112,7 +1210,7 @@
 
         approve.textContent =
           decision.approved
-            ? "Svar godkänt"
+            ? "✓ Svar godkänt"
             : "Godkänn svar";
 
         if (
@@ -1182,6 +1280,21 @@
           reminderTitle
         );
 
+        const reminderHelp =
+          document.createElement(
+            "div"
+          );
+
+        reminderHelp.className =
+          "reminder-help";
+
+        reminderHelp.textContent =
+          "Förslag: nästa dag kl. 09:00. Ändra vid behov och tryck sedan Godkänn påminnelse.";
+
+        reminderBox.appendChild(
+          reminderHelp
+        );
+
         const fields =
           document.createElement(
             "div"
@@ -1212,6 +1325,7 @@
           );
 
         dateInput.type = "date";
+
         dateInput.value =
           decision.date || "";
 
@@ -1263,6 +1377,7 @@
           );
 
         timeInput.type = "time";
+
         timeInput.value =
           decision.time || "";
 
@@ -1313,13 +1428,105 @@
           `reminder-error-${task.id}`;
 
         error.className =
-          "reminder-error visible";
+          "reminder-error";
 
         error.textContent =
           "Välj både datum och tid.";
 
+        if (
+          !reminderFieldsComplete(
+            task.id
+          )
+        ) {
+          error.classList.add(
+            "visible"
+          );
+        }
+
         reminderBox.appendChild(
           error
+        );
+
+        const reminderActions =
+          document.createElement(
+            "div"
+          );
+
+        reminderActions.className =
+          "reminder-actions";
+
+        const approveReminderButton =
+          document.createElement(
+            "button"
+          );
+
+        approveReminderButton.type =
+          "button";
+
+        approveReminderButton.className =
+          "approve-reminder";
+
+        approveReminderButton.textContent =
+          decision.approved
+            ? "✓ Påminnelse godkänd"
+            : "Godkänn påminnelse";
+
+        if (
+          decision.approved
+        ) {
+          approveReminderButton
+            .classList.add(
+              "selected"
+            );
+        }
+
+        if (
+          submitState === "sent" ||
+          submitState === "sending"
+        ) {
+          approveReminderButton.disabled =
+            true;
+        }
+
+        approveReminderButton
+          .addEventListener(
+            "click",
+            () => {
+              approveReminder(
+                task.id
+              );
+            }
+          );
+
+        reminderActions.appendChild(
+          approveReminderButton
+        );
+
+        reminderBox.appendChild(
+          reminderActions
+        );
+
+        const confirmed =
+          document.createElement(
+            "div"
+          );
+
+        confirmed.className =
+          "reminder-confirmed";
+
+        if (
+          decision.approved
+        ) {
+          confirmed.classList.add(
+            "visible"
+          );
+
+          confirmed.textContent =
+            `Påminnelse godkänd: ${decision.date} kl. ${decision.time}`;
+        }
+
+        reminderBox.appendChild(
+          confirmed
         );
 
         card.appendChild(
@@ -1394,10 +1601,6 @@
       const currentDecision =
         adDecisions[ad.id];
 
-      /*
-       * Radera = rött kort.
-       * Behåll = grönt kort.
-       */
       if (
         currentDecision?.status ===
         "delete"
@@ -1541,17 +1744,6 @@
       }
 
       updateProgress();
-
-      tasks.forEach(task => {
-        if (
-          decisions[task.id]
-            ?.status === "remind"
-        ) {
-          updateReminderError(
-            task.id
-          );
-        }
-      });
     }
 
     function buildBatch() {
@@ -1608,6 +1800,13 @@
             time:
               decision.time
           };
+
+          /*
+           * Detta är användarens uttryckligen
+           * godkända datum och tid.
+           */
+          action.approved =
+            true;
         }
 
         actions.push(
@@ -1656,23 +1855,9 @@
         submitState === "sending" ||
         submitState === "sent"
       ) {
-        tasks.forEach(task => {
-          if (
-            decisions[task.id]
-              ?.status === "remind"
-          ) {
-            updateReminderError(
-              task.id
-            );
-          }
-        });
-
         return;
       }
 
-      /*
-       * Lås batchen direkt när användaren klickar.
-       */
       submitState = "sending";
       render();
 
@@ -1840,14 +2025,6 @@
           value
         );
 
-      /*
-       * ChatGPT kan skicka samma toolOutput igen efter
-       * att användaren klickat Utför åtgärder.
-       *
-       * Samma batch får då INTE återställas till idle.
-       * Knappen ska fortsätta visa
-       * "✓ Åtgärder skickade".
-       */
       if (
         (
           submitState === "sent" ||
@@ -1860,10 +2037,6 @@
         return;
       }
 
-      /*
-       * Ett nytt toolOutput med andra mejl är däremot
-       * en ny batch och får börja från idle.
-       */
       tasks =
         normalizeTasks(
           output.tasks
