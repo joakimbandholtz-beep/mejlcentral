@@ -82,6 +82,27 @@
       border: 1px solid var(--border);
       border-radius: 12px;
       background: var(--card);
+      transition:
+        background 0.15s ease,
+        border-color 0.15s ease;
+    }
+
+    /*
+     * Hela kortet visar tydligt vilket beslut som är valt.
+     */
+    .card.decision-green {
+      border-color: var(--green);
+      background: var(--green-soft);
+    }
+
+    .card.decision-yellow {
+      border-color: var(--yellow);
+      background: var(--yellow-soft);
+    }
+
+    .card.decision-red {
+      border-color: var(--red);
+      background: var(--red-soft);
     }
 
     .title {
@@ -244,11 +265,6 @@
       text-align: center;
     }
 
-    /*
-     * V8:
-     * Knappen är medvetet neutral/grå tills
-     * alla mejl har ett färdigt val.
-     */
     .submit {
       width: 100%;
       padding: 11px 14px;
@@ -265,7 +281,7 @@
     }
 
     /*
-     * Alla val är klara.
+     * Alla val är klara och batchen kan skickas.
      */
     .submit.ready {
       border-color: var(--green);
@@ -275,7 +291,7 @@
     }
 
     /*
-     * Klick har registrerats och batchen skickas.
+     * Klick har registrerats.
      */
     .submit.sending {
       border-color: var(--green);
@@ -286,7 +302,8 @@
     }
 
     /*
-     * Batchen har skickats från widgeten.
+     * Batchen är skickad från widgeten.
+     * Knappen förblir låst och ska inte bli aktiv igen.
      */
     .submit.sent {
       border-color: var(--green);
@@ -359,7 +376,7 @@
   </main>
 
   <script>
-    const APP_VERSION = "0.8.0";
+    const APP_VERSION = "0.8.1";
 
     const STATUS_CONFIG = {
       reply: {
@@ -416,19 +433,25 @@
     const adDecisions = {};
 
     /*
-     * idle    = ännu inte skickad
-     * sending = användaren har klickat
-     * sent    = batchen har skickats från widgeten
+     * idle    = batchen kan redigeras
+     * sending = användaren har klickat på Utför åtgärder
+     * sent    = batchen har skickats och är låst
      */
     let submitState = "idle";
 
     function markChanged() {
+      /*
+       * När en batch väl är skickad ska den inte öppnas
+       * igen genom ytterligare klick eller återrendering.
+       */
       if (
         submitState === "sent" ||
         submitState === "sending"
       ) {
-        submitState = "idle";
+        return false;
       }
+
+      return true;
     }
 
     function normalizeTasks(input) {
@@ -538,7 +561,9 @@
       task,
       status
     ) {
-      markChanged();
+      if (!markChanged()) {
+        return;
+      }
 
       const previous =
         decisions[task.id] || {};
@@ -588,7 +613,9 @@
       ad,
       status
     ) {
-      markChanged();
+      if (!markChanged()) {
+        return;
+      }
 
       adDecisions[ad.id] = {
         status
@@ -601,6 +628,10 @@
       taskId,
       text
     ) {
+      if (!markChanged()) {
+        return;
+      }
+
       const decision =
         decisions[taskId];
 
@@ -610,8 +641,6 @@
       ) {
         return;
       }
-
-      markChanged();
 
       decision.text = text;
       decision.approved = false;
@@ -622,6 +651,10 @@
     function approveReply(
       taskId
     ) {
+      if (!markChanged()) {
+        return;
+      }
+
       const decision =
         decisions[taskId];
 
@@ -631,8 +664,6 @@
       ) {
         return;
       }
-
-      markChanged();
 
       decision.approved = true;
 
@@ -644,6 +675,10 @@
       field,
       value
     ) {
+      if (!markChanged()) {
+        return;
+      }
+
       const decision =
         decisions[taskId];
 
@@ -654,11 +689,10 @@
         return;
       }
 
-      markChanged();
-
       decision[field] = value;
 
       updateProgress();
+
       updateReminderError(
         taskId
       );
@@ -914,6 +948,13 @@
         );
       }
 
+      if (
+        submitState === "sent" ||
+        submitState === "sending"
+      ) {
+        button.disabled = true;
+      }
+
       button.addEventListener(
         "click",
         () => {
@@ -934,6 +975,28 @@
         );
 
       card.className = "card";
+
+      const currentDecision =
+        decisions[task.id];
+
+      /*
+       * Alla normala beslut visas grönt.
+       * Ingen åtgärd visas gult.
+       */
+      if (currentDecision) {
+        if (
+          currentDecision.status ===
+          "skip"
+        ) {
+          card.classList.add(
+            "decision-yellow"
+          );
+        } else {
+          card.classList.add(
+            "decision-green"
+          );
+        }
+      }
 
       const meta =
         buildMeta([
@@ -1013,6 +1076,13 @@
         textarea.value =
           decision.text || "";
 
+        if (
+          submitState === "sent" ||
+          submitState === "sending"
+        ) {
+          textarea.disabled = true;
+        }
+
         textarea.addEventListener(
           "input",
           event => {
@@ -1051,6 +1121,13 @@
           approve.classList.add(
             "selected"
           );
+        }
+
+        if (
+          submitState === "sent" ||
+          submitState === "sending"
+        ) {
+          approve.disabled = true;
         }
 
         approve.addEventListener(
@@ -1138,6 +1215,13 @@
         dateInput.value =
           decision.date || "";
 
+        if (
+          submitState === "sent" ||
+          submitState === "sending"
+        ) {
+          dateInput.disabled = true;
+        }
+
         dateInput.addEventListener(
           "change",
           event => {
@@ -1181,6 +1265,13 @@
         timeInput.type = "time";
         timeInput.value =
           decision.time || "";
+
+        if (
+          submitState === "sent" ||
+          submitState === "sending"
+        ) {
+          timeInput.disabled = true;
+        }
 
         timeInput.addEventListener(
           "change",
@@ -1272,6 +1363,13 @@
         );
       }
 
+      if (
+        submitState === "sent" ||
+        submitState === "sending"
+      ) {
+        button.disabled = true;
+      }
+
       button.addEventListener(
         "click",
         () => {
@@ -1292,6 +1390,31 @@
         );
 
       card.className = "card";
+
+      const currentDecision =
+        adDecisions[ad.id];
+
+      /*
+       * Radera = rött kort.
+       * Behåll = grönt kort.
+       */
+      if (
+        currentDecision?.status ===
+        "delete"
+      ) {
+        card.classList.add(
+          "decision-red"
+        );
+      }
+
+      if (
+        currentDecision?.status ===
+        "keep"
+      ) {
+        card.classList.add(
+          "decision-green"
+        );
+      }
 
       const meta =
         buildMeta([
@@ -1548,11 +1671,10 @@
       }
 
       /*
-       * Ändra knappen DIREKT vid klick,
-       * innan något nätverksanrop görs.
+       * Lås batchen direkt när användaren klickar.
        */
       submitState = "sending";
-      updateProgress();
+      render();
 
       const batch =
         buildBatch();
@@ -1611,7 +1733,7 @@
         submitState = "idle";
       }
 
-      updateProgress();
+      render();
     }
 
     function extractToolOutput(
@@ -1672,12 +1794,76 @@
       };
     }
 
+    function outputSignature(output) {
+      const taskIds =
+        (output.tasks || [])
+          .map(
+            item =>
+              String(
+                item?.id ?? ""
+              )
+          )
+          .join("|");
+
+      const adIds =
+        (output.ads || [])
+          .map(
+            item =>
+              String(
+                item?.id ?? ""
+              )
+          )
+          .join("|");
+
+      return (
+        taskIds +
+        "::" +
+        adIds
+      );
+    }
+
+    function currentSignature() {
+      return (
+        tasks
+          .map(item => item.id)
+          .join("|") +
+        "::" +
+        ads
+          .map(item => item.id)
+          .join("|")
+      );
+    }
+
     function applyOutput(value) {
       const output =
         extractToolOutput(
           value
         );
 
+      /*
+       * ChatGPT kan skicka samma toolOutput igen efter
+       * att användaren klickat Utför åtgärder.
+       *
+       * Samma batch får då INTE återställas till idle.
+       * Knappen ska fortsätta visa
+       * "✓ Åtgärder skickade".
+       */
+      if (
+        (
+          submitState === "sent" ||
+          submitState === "sending"
+        ) &&
+        outputSignature(output) ===
+          currentSignature()
+      ) {
+        render();
+        return;
+      }
+
+      /*
+       * Ett nytt toolOutput med andra mejl är däremot
+       * en ny batch och får börja från idle.
+       */
       tasks =
         normalizeTasks(
           output.tasks
