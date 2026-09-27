@@ -16,8 +16,8 @@ const app = express();
 app.use(express.json({ limit: "1mb" }));
 app.use(express.static("public"));
 
-const APP_VERSION = "0.7.3";
-const WIDGET_URI = "ui://mejlcentral/v7.html";
+const APP_VERSION = "0.8.0";
+const WIDGET_URI = "ui://mejlcentral/v8.html";
 
 const STATUS = [
   "reply",
@@ -40,29 +40,16 @@ const taskSchema = z.object({
   id: z.string(),
   title: z.string(),
 
-  account: z
-    .string()
-    .optional()
-    .default(""),
-
-  received: z
-    .string()
-    .optional()
-    .default(""),
-
-  summary: z
-    .string()
-    .optional()
-    .default(""),
+  account: z.string().optional().default(""),
+  received: z.string().optional().default(""),
+  summary: z.string().optional().default(""),
 
   statuses: z
     .array(statusSchema)
     .optional()
     .default(STATUS),
 
-  replyDraft: z
-    .string()
-    .optional(),
+  replyDraft: z.string().optional(),
 
   done: z
     .boolean()
@@ -74,25 +61,10 @@ const adSchema = z.object({
   id: z.string(),
   title: z.string(),
 
-  sender: z
-    .string()
-    .optional()
-    .default(""),
-
-  account: z
-    .string()
-    .optional()
-    .default(""),
-
-  received: z
-    .string()
-    .optional()
-    .default(""),
-
-  summary: z
-    .string()
-    .optional()
-    .default(""),
+  sender: z.string().optional().default(""),
+  account: z.string().optional().default(""),
+  received: z.string().optional().default(""),
+  summary: z.string().optional().default(""),
 
   statuses: z
     .array(adStatusSchema)
@@ -125,7 +97,7 @@ function createMcpServer() {
 
   registerAppResource(
     server,
-    "mejlcentral-ui-v7",
+    "mejlcentral-ui-v8",
     WIDGET_URI,
     {},
     async () => {
@@ -136,10 +108,8 @@ function createMcpServer() {
         contents: [
           {
             uri: WIDGET_URI,
-
             mimeType:
               RESOURCE_MIME_TYPE,
-
             text: html,
 
             _meta: {
@@ -217,29 +187,22 @@ function createMcpServer() {
       const normalizedTasks =
         tasks.map((task) => ({
           id: task.id,
-
           title: task.title,
-
           account:
             task.account || "",
-
           received:
             task.received || "",
-
           summary:
             task.summary || "",
 
           statuses:
-            Array.isArray(
-              task.statuses
-            ) &&
+            Array.isArray(task.statuses) &&
             task.statuses.length
               ? task.statuses
               : STATUS,
 
           replyDraft:
-            typeof task.replyDraft ===
-            "string"
+            typeof task.replyDraft === "string"
               ? task.replyDraft
               : "",
 
@@ -250,25 +213,18 @@ function createMcpServer() {
       const normalizedAds =
         ads.map((ad) => ({
           id: ad.id,
-
           title: ad.title,
-
           sender:
             ad.sender || "",
-
           account:
             ad.account || "",
-
           received:
             ad.received || "",
-
           summary:
             ad.summary || "",
 
           statuses:
-            Array.isArray(
-              ad.statuses
-            ) &&
+            Array.isArray(ad.statuses) &&
             ad.statuses.length
               ? ad.statuses
               : AD_STATUS,
@@ -276,7 +232,7 @@ function createMcpServer() {
 
       return {
         structuredContent: {
-          version: 7,
+          version: 8,
           appVersion:
             APP_VERSION,
           tasks:
@@ -288,9 +244,8 @@ function createMcpServer() {
         content: [
           {
             type: "text",
-
             text:
-              `Mejlcentralen v7: ` +
+              `Mejlcentralen v8: ` +
               `${normalizedTasks.length} relevanta mejl och ` +
               `${normalizedAds.length} reklam/utskick.`,
           },
@@ -302,11 +257,6 @@ function createMcpServer() {
   return server;
 }
 
-/*
- * CORS för MCP.
- * Matchar OpenAI:s rekommenderade
- * Streamable HTTP-upplägg.
- */
 app.options(
   "/mcp",
   (req, res) => {
@@ -333,7 +283,7 @@ app.get("/", (req, res) => {
     .type("text/plain")
     .send(
       [
-        "Mejlcentralen v7",
+        "Mejlcentralen v8",
         "",
         "MCP endpoint: /mcp",
         `Widget: ${WIDGET_URI}`,
@@ -354,45 +304,27 @@ app.get(
   (req, res) => {
     res.json({
       ok: true,
-
       service:
         "mejlcentral",
-
       version:
         APP_VERSION,
-
       widget:
         WIDGET_URI,
-
       mimeType:
         RESOURCE_MIME_TYPE,
-
       mcpApps: true,
-
       transport:
         "streamable-http",
-
       stateless: true,
-
       jsonResponse: true,
-
       statuses:
         STATUS,
-
       adStatuses:
         AD_STATUS,
     });
   }
 );
 
-/*
- * MCP Streamable HTTP
- *
- * Stateless transport används för varje
- * request. Det följer OpenAI:s aktuella
- * MCP Apps-exempel och fungerar bättre
- * i serverless-miljöer som Vercel.
- */
 async function handleMcpRequest(
   req,
   res
@@ -414,7 +346,6 @@ async function handleMcpRequest(
     new StreamableHTTPServerTransport({
       sessionIdGenerator:
         undefined,
-
       enableJsonResponse:
         true,
     });
@@ -450,9 +381,7 @@ async function handleMcpRequest(
       error
     );
 
-    if (
-      !res.headersSent
-    ) {
+    if (!res.headersSent) {
       res
         .status(500)
         .json({
