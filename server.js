@@ -13,8 +13,8 @@ const app = express();
 
 app.use(express.json({ limit: "1mb" }));
 
-const APP_VERSION = "0.5.0";
-const WIDGET_URI = "ui://mejlcentral/v5.html";
+const APP_VERSION = "0.6.0";
+const WIDGET_URI = "ui://mejlcentral/v6.html";
 
 const STATUS = [
   "reply",
@@ -25,6 +25,11 @@ const STATUS = [
   "skip"
 ];
 
+const AD_STATUS = [
+  "delete",
+  "keep"
+];
+
 const statusSchema = z.enum([
   "reply",
   "done",
@@ -32,6 +37,11 @@ const statusSchema = z.enum([
   "watch",
   "remind",
   "skip"
+]);
+
+const adStatusSchema = z.enum([
+  "delete",
+  "keep"
 ]);
 
 const taskSchema = z.object({
@@ -76,6 +86,40 @@ const taskSchema = z.object({
     .default(false)
 });
 
+const adSchema = z.object({
+  id: z.string(),
+
+  title: z.string(),
+
+  sender: z
+    .string()
+    .optional()
+    .default(""),
+
+  account: z
+    .string()
+    .optional()
+    .default(""),
+
+  received: z
+    .string()
+    .optional()
+    .default(""),
+
+  summary: z
+    .string()
+    .optional()
+    .default(""),
+
+  statuses: z
+    .array(adStatusSchema)
+    .optional()
+    .default([
+      "delete",
+      "keep"
+    ])
+});
+
 function loadWidgetHtml() {
   const widgetPath = path.join(
     __dirname,
@@ -99,7 +143,7 @@ function loadWidgetHtml() {
       <html lang="sv">
         <head>
           <meta charset="utf-8">
-          <title>Mejlcentralen v5</title>
+          <title>Mejlcentralen v6</title>
         </head>
 
         <body>
@@ -120,14 +164,13 @@ function createMcpServer() {
   });
 
   /*
-   * Ny widget-URI för v5.
+   * Ny widget-URI för v6.
    *
-   * Det här är avsiktligt en NY URI jämfört
-   * med v4 så att ChatGPT inte ska återanvända
-   * den gamla widgetresursen.
+   * En ny URI används för att undvika att
+   * ChatGPT återanvänder en cachad v5-widget.
    */
   server.registerResource(
-    "mejlcentral-ui-v5",
+    "mejlcentral-ui-v6",
     WIDGET_URI,
     {},
     async () => ({
@@ -139,7 +182,7 @@ function createMcpServer() {
 
           _meta: {
             "openai/widgetDescription":
-              "Mejlcentralen v5. Ett klickbart gränssnitt för att hantera mejluppgifter med Svara, Klar, Vänta, Bevaka, Påminn eller Ingen åtgärd.",
+              "Mejlcentralen v6. Klickbart gränssnitt för mejluppgifter samt reklam och utskick. Vanliga mejl hanteras med Svara, Klar, Vänta, Bevaka, Påminn eller Ingen åtgärd. Reklam hanteras separat med Radera eller Behåll.",
 
             "openai/widgetPrefersBorder":
               true
@@ -153,8 +196,12 @@ function createMcpServer() {
    * Verktyget som ChatGPT använder för att
    * visa Mejlcentralen.
    *
-   * VIKTIGT:
-   * skip finns nu i själva input-schemat.
+   * tasks = vanliga relevanta mejl
+   * ads = identifierad reklam / utskick
+   *
+   * Verktyget utför inga kontoåtgärder.
+   * Alla val skickas tillbaka till ChatGPT
+   * först när användaren klickar Utför åtgärder.
    */
   server.registerTool(
     "show_mail_center",
@@ -163,10 +210,18 @@ function createMcpServer() {
       title: "Visa Mejlcentralen",
 
       description:
-        "Visar en lista med mejluppgifter i ett klickbart gränssnitt. Användaren kan välja Svara, Klar, Vänta, Bevaka, Påminn eller Ingen åtgärd. Verktyget är presentation och initierar inga externa kontoåtgärder själv. När användaren klickar Utför skickas hela batchen tillbaka till ChatGPT för fortsatt hantering med användarens auktoriserade verktyg.",
+        "Visar relevanta mejluppgifter och identifierad reklam i ett klickbart gränssnitt. Vanliga mejl kan hanteras med Svara, Klar, Vänta, Bevaka, Påminn eller Ingen åtgärd. Reklam och utskick visas i en separat sektion där användaren väljer Radera eller Behåll för varje mejl. Verktyget är endast presentation och initierar inga externa kontoåtgärder själv. När användaren klickar Utför åtgärder skickas hela batchen tillbaka till ChatGPT för faktisk hantering med användarens auktoriserade mejlverktyg.",
 
       inputSchema: {
-        tasks: z.array(taskSchema)
+        tasks: z
+          .array(taskSchema)
+          .optional()
+          .default([]),
+
+        ads: z
+          .array(adSchema)
+          .optional()
+          .default([])
       },
 
       _meta: {
@@ -181,11 +236,10 @@ function createMcpServer() {
       }
     },
 
-    async ({ tasks }) => {
+    async ({ tasks, ads }) => {
       /*
-       * Säkerställ att skip alltid finns som
-       * möjligt val även om ChatGPT skickar en
-       * äldre statuslista.
+       * Säkerställ att Ingen åtgärd alltid
+       * finns för vanliga mejl.
        */
       const normalizedTasks = tasks.map(
         task => {
@@ -208,17 +262,49 @@ function createMcpServer() {
         }
       );
 
+      /*
+       * Säkerställ att reklam alltid får
+       * alternativen Radera och Behåll.
+       */
+      const normalizedAds = ads.map(
+        ad => {
+          const statuses = Array.isArray(
+            ad.statuses
+          )
+            ? [...ad.statuses]
+            : [];
+
+          if (
+            !statuses.includes("delete")
+          ) {
+            statuses.push("delete");
+          }
+
+          if (
+            !statuses.includes("keep")
+          ) {
+            statuses.push("keep");
+          }
+
+          return {
+            ...ad,
+            statuses
+          };
+        }
+      );
+
       return {
         structuredContent: {
-          version: 5,
-          tasks: normalizedTasks
+          version: 6,
+          tasks: normalizedTasks,
+          ads: normalizedAds
         },
 
         content: [
           {
             type: "text",
             text:
-              `Mejlcentralen v5 visar ${normalizedTasks.length} mejluppgifter.`
+              `Mejlcentralen v6 visar ${normalizedTasks.length} relevanta mejl och ${normalizedAds.length} reklam-/utskicksmejl.`
           }
         ],
 
@@ -235,11 +321,6 @@ function createMcpServer() {
 
 /*
  * Hälsokontroll.
- *
- * Efter deployment ska denna visa:
- *
- * version: 0.5.0
- * widget: ui://mejlcentral/v5.html
  */
 app.get(
   "/health",
@@ -249,7 +330,8 @@ app.get(
       service: "mejlcentral",
       version: APP_VERSION,
       widget: WIDGET_URI,
-      statuses: STATUS
+      statuses: STATUS,
+      adStatuses: AD_STATUS
     });
   }
 );
@@ -286,11 +368,11 @@ app.get(
               padding:20px;
             "
           >
-            <h1>Mejlcentralen v5</h1>
+            <h1>Mejlcentralen v6</h1>
 
             <p>
               Mejlcentralen hjälper dig att
-              hantera mejluppgifter med:
+              hantera relevanta mejl med:
             </p>
 
             <ul>
@@ -304,6 +386,16 @@ app.get(
                   Ingen åtgärd
                 </strong>
               </li>
+            </ul>
+
+            <p>
+              Reklam och utskick hanteras
+              separat med:
+            </p>
+
+            <ul>
+              <li>Radera</li>
+              <li>Behåll</li>
             </ul>
 
             <p>
