@@ -16,8 +16,8 @@ const app = express();
 app.use(express.json({ limit: "1mb" }));
 app.use(express.static("public"));
 
-const APP_VERSION = "0.8.2";
-const WIDGET_URI = "ui://mejlcentral/v8.2.html";
+const APP_VERSION = "0.8.3";
+const WIDGET_URI = "ui://mejlcentral/v8.3.html";
 
 const STATUS = [
   "reply",
@@ -97,7 +97,7 @@ function createMcpServer() {
 
   registerAppResource(
     server,
-    "mejlcentral-ui-v8-2",
+    "mejlcentral-ui-v8-3",
     WIDGET_URI,
     {},
     async () => {
@@ -245,7 +245,7 @@ function createMcpServer() {
           {
             type: "text",
             text:
-              `Mejlcentralen v8.2: ` +
+              `Mejlcentralen v8.3: ` +
               `${normalizedTasks.length} relevanta mejl och ` +
               `${normalizedAds.length} reklam/utskick.`,
           },
@@ -283,7 +283,7 @@ app.get("/", (req, res) => {
     .type("text/plain")
     .send(
       [
-        "Mejlcentralen v8.2",
+        "Mejlcentralen v8.3",
         "",
         "MCP endpoint: /mcp",
         `Widget: ${WIDGET_URI}`,
