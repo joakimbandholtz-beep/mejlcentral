@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Mejlcentralen v8.2</title>
+  <title>Mejlcentralen v8.3</title>
 
   <style>
     :root {
@@ -268,6 +268,19 @@
       display: block;
     }
 
+    .callback-error {
+      display: none;
+      margin-top: 8px;
+      color: var(--red);
+      font-size: 12px;
+      font-weight: 600;
+      text-align: center;
+    }
+
+    .callback-error.visible {
+      display: block;
+    }
+
     .footer {
       position: sticky;
       bottom: 0;
@@ -338,7 +351,7 @@
 
 <body>
   <main class="app">
-    <h1>Mejlcentralen v8.2</h1>
+    <h1>Mejlcentralen v8.3</h1>
 
     <div class="intro">
       Välj vad som ska göras med varje mejl. Inget utförs förrän du
@@ -375,6 +388,14 @@
       </button>
 
       <div
+        id="callback-error"
+        class="callback-error"
+      >
+        Kunde inte skicka åtgärderna till ChatGPT.
+        Försök igen.
+      </div>
+
+      <div
         class="hint"
         style="margin-top:8px;text-align:center;"
       >
@@ -384,29 +405,14 @@
   </main>
 
   <script>
-    const APP_VERSION = "0.8.2";
+    const APP_VERSION = "0.8.3";
 
     const STATUS_CONFIG = {
-      reply: {
-        label: "Svara"
-      },
-
-      done: {
-        label: "Klar"
-      },
-
-      wait: {
-        label: "Vänta"
-      },
-
-      watch: {
-        label: "Bevaka"
-      },
-
-      remind: {
-        label: "Påminn"
-      },
-
+      reply: { label: "Svara" },
+      done: { label: "Klar" },
+      wait: { label: "Vänta" },
+      watch: { label: "Bevaka" },
+      remind: { label: "Påminn" },
       skip: {
         label: "Ingen åtgärd",
         className: "skip"
@@ -427,7 +433,6 @@
         label: "Radera",
         className: "delete"
       },
-
       keep: {
         label: "Behåll",
         className: "keep"
@@ -443,14 +448,10 @@
     let submitState = "idle";
 
     function markChanged() {
-      if (
+      return !(
         submitState === "sent" ||
         submitState === "sending"
-      ) {
-        return false;
-      }
-
-      return true;
+      );
     }
 
     function pad2(value) {
@@ -459,10 +460,7 @@
 
     function defaultReminderDate() {
       const date = new Date();
-
-      date.setDate(
-        date.getDate() + 1
-      );
+      date.setDate(date.getDate() + 1);
 
       return [
         date.getFullYear(),
@@ -527,40 +525,38 @@
         return [];
       }
 
-      return input.map(
-        (ad, index) => ({
-          id: String(
-            ad?.id ??
-            `ad-${index + 1}`
-          ),
+      return input.map((ad, index) => ({
+        id: String(
+          ad?.id ??
+          `ad-${index + 1}`
+        ),
 
-          title: String(
-            ad?.title ??
-            "Utskick"
-          ),
+        title: String(
+          ad?.title ??
+          "Utskick"
+        ),
 
-          sender: String(
-            ad?.sender ?? ""
-          ),
+        sender: String(
+          ad?.sender ?? ""
+        ),
 
-          account: String(
-            ad?.account ?? ""
-          ),
+        account: String(
+          ad?.account ?? ""
+        ),
 
-          received: String(
-            ad?.received ?? ""
-          ),
+        received: String(
+          ad?.received ?? ""
+        ),
 
-          summary: String(
-            ad?.summary ?? ""
-          ),
+        summary: String(
+          ad?.summary ?? ""
+        ),
 
-          statuses: [
-            "delete",
-            "keep"
-          ]
-        })
-      );
+        statuses: [
+          "delete",
+          "keep"
+        ]
+      }));
     }
 
     function escapeHtml(value) {
@@ -578,10 +574,7 @@
         .join(" · ");
     }
 
-    function setDecision(
-      task,
-      status
-    ) {
+    function setDecision(task, status) {
       if (!markChanged()) {
         return;
       }
@@ -603,9 +596,7 @@
         };
       }
 
-      else if (
-        status === "remind"
-      ) {
+      else if (status === "remind") {
         decisions[task.id] = {
           status: "remind",
 
@@ -634,10 +625,7 @@
       render();
     }
 
-    function setAdDecision(
-      ad,
-      status
-    ) {
+    function setAdDecision(ad, status) {
       if (!markChanged()) {
         return;
       }
@@ -649,10 +637,7 @@
       render();
     }
 
-    function updateReplyText(
-      taskId,
-      text
-    ) {
+    function updateReplyText(taskId, text) {
       if (!markChanged()) {
         return;
       }
@@ -673,9 +658,7 @@
       render();
     }
 
-    function approveReply(
-      taskId
-    ) {
+    function approveReply(taskId) {
       if (!markChanged()) {
         return;
       }
@@ -698,7 +681,6 @@
       }
 
       decision.approved = true;
-
       render();
     }
 
@@ -722,19 +704,12 @@
       }
 
       decision[field] = value;
-
-      /*
-       * Ändras datum eller tid efter ett tidigare
-       * godkännande måste påminnelsen godkännas igen.
-       */
       decision.approved = false;
 
       render();
     }
 
-    function reminderFieldsComplete(
-      taskId
-    ) {
+    function reminderFieldsComplete(taskId) {
       const decision =
         decisions[taskId];
 
@@ -746,9 +721,7 @@
       );
     }
 
-    function approveReminder(
-      taskId
-    ) {
+    function approveReminder(taskId) {
       if (!markChanged()) {
         return;
       }
@@ -767,21 +740,15 @@
         !decision.date ||
         !decision.time
       ) {
-        updateReminderError(
-          taskId
-        );
-
+        updateReminderError(taskId);
         return;
       }
 
       decision.approved = true;
-
       render();
     }
 
-    function reminderComplete(
-      taskId
-    ) {
+    function reminderComplete(taskId) {
       const decision =
         decisions[taskId];
 
@@ -794,9 +761,7 @@
       );
     }
 
-    function taskDecisionComplete(
-      task
-    ) {
+    function taskDecisionComplete(task) {
       const decision =
         decisions[task.id];
 
@@ -804,9 +769,7 @@
         return false;
       }
 
-      if (
-        decision.status === "reply"
-      ) {
+      if (decision.status === "reply") {
         return Boolean(
           decision.approved &&
           typeof decision.text === "string" &&
@@ -814,20 +777,14 @@
         );
       }
 
-      if (
-        decision.status === "remind"
-      ) {
-        return reminderComplete(
-          task.id
-        );
+      if (decision.status === "remind") {
+        return reminderComplete(task.id);
       }
 
       return true;
     }
 
-    function adDecisionComplete(
-      ad
-    ) {
+    function adDecisionComplete(ad) {
       const decision =
         adDecisions[ad.id];
 
@@ -850,20 +807,14 @@
       }
 
       return (
-        tasks.every(
-          taskDecisionComplete
-        ) &&
-        ads.every(
-          adDecisionComplete
-        )
+        tasks.every(taskDecisionComplete) &&
+        ads.every(adDecisionComplete)
       );
     }
 
     function updateSubmitButton() {
       const submit =
-        document.getElementById(
-          "submit"
-        );
+        document.getElementById("submit");
 
       submit.classList.remove(
         "ready",
@@ -871,51 +822,31 @@
         "sent"
       );
 
-      if (
-        submitState === "sending"
-      ) {
+      if (submitState === "sending") {
         submit.disabled = true;
-
-        submit.classList.add(
-          "sending"
-        );
-
+        submit.classList.add("sending");
         submit.textContent =
           "Utför åtgärder…";
-
         return;
       }
 
-      if (
-        submitState === "sent"
-      ) {
+      if (submitState === "sent") {
         submit.disabled = true;
-
-        submit.classList.add(
-          "sent"
-        );
-
+        submit.classList.add("sent");
         submit.textContent =
           "✓ Åtgärder skickade";
-
         return;
       }
 
       if (allComplete()) {
         submit.disabled = false;
-
-        submit.classList.add(
-          "ready"
-        );
-
+        submit.classList.add("ready");
         submit.textContent =
           "Utför åtgärder";
-
         return;
       }
 
       submit.disabled = true;
-
       submit.textContent =
         "Utför åtgärder";
     }
@@ -947,17 +878,13 @@
       if (total === 0) {
         progress.textContent =
           "Inga mejl att hantera.";
-
         updateSubmitButton();
         return;
       }
 
-      if (
-        submitState === "sent"
-      ) {
+      if (submitState === "sent") {
         progress.textContent =
           `${total} av ${total} mejl skickade för åtgärd`;
-
         updateSubmitButton();
         return;
       }
@@ -968,9 +895,7 @@
       updateSubmitButton();
     }
 
-    function updateReminderError(
-      taskId
-    ) {
+    function updateReminderError(taskId) {
       const error =
         document.getElementById(
           `reminder-error-${taskId}`
@@ -980,18 +905,10 @@
         return;
       }
 
-      if (
-        reminderFieldsComplete(
-          taskId
-        )
-      ) {
-        error.classList.remove(
-          "visible"
-        );
+      if (reminderFieldsComplete(taskId)) {
+        error.classList.remove("visible");
       } else {
-        error.classList.add(
-          "visible"
-        );
+        error.classList.add("visible");
       }
     }
 
@@ -1006,9 +923,7 @@
         decisions[task.id];
 
       const button =
-        document.createElement(
-          "button"
-        );
+        document.createElement("button");
 
       button.type = "button";
       button.textContent =
@@ -1020,12 +935,8 @@
         );
       }
 
-      if (
-        decision?.status === status
-      ) {
-        button.classList.add(
-          "selected"
-        );
+      if (decision?.status === status) {
+        button.classList.add("selected");
       }
 
       if (
@@ -1038,10 +949,7 @@
       button.addEventListener(
         "click",
         () => {
-          setDecision(
-            task,
-            status
-          );
+          setDecision(task, status);
         }
       );
 
@@ -1050,29 +958,19 @@
 
     function createTaskCard(task) {
       const card =
-        document.createElement(
-          "article"
-        );
+        document.createElement("article");
 
       card.className = "card";
 
       const currentDecision =
         decisions[task.id];
 
-      /*
-       * Kortet blir färgmarkerat först när valet
-       * verkligen är komplett.
-       *
-       * Påminn kräver därför separat godkännande.
-       * Svara kräver godkänt svar.
-       */
       if (
         currentDecision &&
         taskDecisionComplete(task)
       ) {
         if (
-          currentDecision.status ===
-          "skip"
+          currentDecision.status === "skip"
         ) {
           card.classList.add(
             "decision-yellow"
@@ -1113,19 +1011,14 @@
       `;
 
       const buttons =
-        document.createElement(
-          "div"
-        );
+        document.createElement("div");
 
-      buttons.className =
-        "buttons";
+      buttons.className = "buttons";
 
       STATUS_ORDER
         .filter(
           status =>
-            task.statuses.includes(
-              status
-            )
+            task.statuses.includes(status)
         )
         .forEach(status => {
           buttons.appendChild(
@@ -1136,20 +1029,14 @@
           );
         });
 
-      card.appendChild(
-        buttons
-      );
+      card.appendChild(buttons);
 
       const decision =
         decisions[task.id];
 
-      if (
-        decision?.status === "reply"
-      ) {
+      if (decision?.status === "reply") {
         const replyBox =
-          document.createElement(
-            "div"
-          );
+          document.createElement("div");
 
         replyBox.className =
           "reply-box visible";
@@ -1180,30 +1067,23 @@
         );
 
         const actions =
-          document.createElement(
-            "div"
-          );
+          document.createElement("div");
 
         actions.className =
           "reply-actions";
 
         const approve =
-          document.createElement(
-            "button"
-          );
+          document.createElement("button");
 
         approve.type = "button";
-        approve.className =
-          "approve";
+        approve.className = "approve";
 
         approve.textContent =
           decision.approved
             ? "✓ Svar godkänt"
             : "Godkänn svar";
 
-        if (
-          decision.approved
-        ) {
+        if (decision.approved) {
           approve.classList.add(
             "selected"
           );
@@ -1219,44 +1099,25 @@
         approve.addEventListener(
           "click",
           () => {
-            approveReply(
-              task.id
-            );
+            approveReply(task.id);
           }
         );
 
-        actions.appendChild(
-          approve
-        );
-
-        replyBox.appendChild(
-          textarea
-        );
-
-        replyBox.appendChild(
-          actions
-        );
-
-        card.appendChild(
-          replyBox
-        );
+        actions.appendChild(approve);
+        replyBox.appendChild(textarea);
+        replyBox.appendChild(actions);
+        card.appendChild(replyBox);
       }
 
-      if (
-        decision?.status === "remind"
-      ) {
+      if (decision?.status === "remind") {
         const reminderBox =
-          document.createElement(
-            "div"
-          );
+          document.createElement("div");
 
         reminderBox.className =
           "reminder-box visible";
 
         const reminderTitle =
-          document.createElement(
-            "div"
-          );
+          document.createElement("div");
 
         reminderTitle.className =
           "reminder-title";
@@ -1269,9 +1130,7 @@
         );
 
         const reminderHelp =
-          document.createElement(
-            "div"
-          );
+          document.createElement("div");
 
         reminderHelp.className =
           "reminder-help";
@@ -1284,36 +1143,25 @@
         );
 
         const fields =
-          document.createElement(
-            "div"
-          );
+          document.createElement("div");
 
         fields.className =
           "reminder-fields";
 
         const dateField =
-          document.createElement(
-            "div"
-          );
+          document.createElement("div");
 
-        dateField.className =
-          "field";
+        dateField.className = "field";
 
         const dateLabel =
-          document.createElement(
-            "label"
-          );
+          document.createElement("label");
 
-        dateLabel.textContent =
-          "Datum";
+        dateLabel.textContent = "Datum";
 
         const dateInput =
-          document.createElement(
-            "input"
-          );
+          document.createElement("input");
 
         dateInput.type = "date";
-
         dateInput.value =
           decision.date || "";
 
@@ -1335,37 +1183,23 @@
           }
         );
 
-        dateField.appendChild(
-          dateLabel
-        );
-
-        dateField.appendChild(
-          dateInput
-        );
+        dateField.appendChild(dateLabel);
+        dateField.appendChild(dateInput);
 
         const timeField =
-          document.createElement(
-            "div"
-          );
+          document.createElement("div");
 
-        timeField.className =
-          "field";
+        timeField.className = "field";
 
         const timeLabel =
-          document.createElement(
-            "label"
-          );
+          document.createElement("label");
 
-        timeLabel.textContent =
-          "Tid";
+        timeLabel.textContent = "Tid";
 
         const timeInput =
-          document.createElement(
-            "input"
-          );
+          document.createElement("input");
 
         timeInput.type = "time";
-
         timeInput.value =
           decision.time || "";
 
@@ -1387,30 +1221,16 @@
           }
         );
 
-        timeField.appendChild(
-          timeLabel
-        );
+        timeField.appendChild(timeLabel);
+        timeField.appendChild(timeInput);
 
-        timeField.appendChild(
-          timeInput
-        );
+        fields.appendChild(dateField);
+        fields.appendChild(timeField);
 
-        fields.appendChild(
-          dateField
-        );
-
-        fields.appendChild(
-          timeField
-        );
-
-        reminderBox.appendChild(
-          fields
-        );
+        reminderBox.appendChild(fields);
 
         const error =
-          document.createElement(
-            "div"
-          );
+          document.createElement("div");
 
         error.id =
           `reminder-error-${task.id}`;
@@ -1422,31 +1242,21 @@
           "Välj både datum och tid.";
 
         if (
-          !reminderFieldsComplete(
-            task.id
-          )
+          !reminderFieldsComplete(task.id)
         ) {
-          error.classList.add(
-            "visible"
-          );
+          error.classList.add("visible");
         }
 
-        reminderBox.appendChild(
-          error
-        );
+        reminderBox.appendChild(error);
 
         const reminderActions =
-          document.createElement(
-            "div"
-          );
+          document.createElement("div");
 
         reminderActions.className =
           "reminder-actions";
 
         const approveReminderButton =
-          document.createElement(
-            "button"
-          );
+          document.createElement("button");
 
         approveReminderButton.type =
           "button";
@@ -1459,13 +1269,9 @@
             ? "✓ Påminnelse godkänd"
             : "Godkänn påminnelse";
 
-        if (
-          decision.approved
-        ) {
+        if (decision.approved) {
           approveReminderButton
-            .classList.add(
-              "selected"
-            );
+            .classList.add("selected");
         }
 
         if (
@@ -1480,9 +1286,7 @@
           .addEventListener(
             "click",
             () => {
-              approveReminder(
-                task.id
-              );
+              approveReminder(task.id);
             }
           );
 
@@ -1495,16 +1299,12 @@
         );
 
         const confirmed =
-          document.createElement(
-            "div"
-          );
+          document.createElement("div");
 
         confirmed.className =
           "reminder-confirmed";
 
-        if (
-          decision.approved
-        ) {
+        if (decision.approved) {
           confirmed.classList.add(
             "visible"
           );
@@ -1517,9 +1317,7 @@
           confirmed
         );
 
-        card.appendChild(
-          reminderBox
-        );
+        card.appendChild(reminderBox);
       }
 
       return card;
@@ -1530,17 +1328,13 @@
       status
     ) {
       const config =
-        AD_STATUS_CONFIG[
-          status
-        ];
+        AD_STATUS_CONFIG[status];
 
       const decision =
         adDecisions[ad.id];
 
       const button =
-        document.createElement(
-          "button"
-        );
+        document.createElement("button");
 
       button.type = "button";
       button.textContent =
@@ -1550,12 +1344,8 @@
         config.className
       );
 
-      if (
-        decision?.status === status
-      ) {
-        button.classList.add(
-          "selected"
-        );
+      if (decision?.status === status) {
+        button.classList.add("selected");
       }
 
       if (
@@ -1568,10 +1358,7 @@
       button.addEventListener(
         "click",
         () => {
-          setAdDecision(
-            ad,
-            status
-          );
+          setAdDecision(ad, status);
         }
       );
 
@@ -1580,9 +1367,7 @@
 
     function createAdCard(ad) {
       const card =
-        document.createElement(
-          "article"
-        );
+        document.createElement("article");
 
       card.className = "card";
 
@@ -1637,30 +1422,19 @@
       `;
 
       const buttons =
-        document.createElement(
-          "div"
-        );
+        document.createElement("div");
 
-      buttons.className =
-        "buttons";
+      buttons.className = "buttons";
 
       buttons.appendChild(
-        createAdButton(
-          ad,
-          "delete"
-        )
+        createAdButton(ad, "delete")
       );
 
       buttons.appendChild(
-        createAdButton(
-          ad,
-          "keep"
-        )
+        createAdButton(ad, "keep")
       );
 
-      card.appendChild(
-        buttons
-      );
+      card.appendChild(buttons);
 
       return card;
     }
@@ -1681,22 +1455,14 @@
 
       if (tasks.length === 0) {
         const empty =
-          document.createElement(
-            "div"
-          );
+          document.createElement("div");
 
-        empty.className =
-          "empty";
-
-        empty.style.marginTop =
-          "10px";
-
+        empty.className = "empty";
+        empty.style.marginTop = "10px";
         empty.textContent =
           "Inga relevanta mejl just nu.";
 
-        taskList.appendChild(
-          empty
-        );
+        taskList.appendChild(empty);
       } else {
         tasks.forEach(task => {
           taskList.appendChild(
@@ -1707,22 +1473,14 @@
 
       if (ads.length === 0) {
         const empty =
-          document.createElement(
-            "div"
-          );
+          document.createElement("div");
 
-        empty.className =
-          "empty";
-
-        empty.style.marginTop =
-          "10px";
-
+        empty.className = "empty";
+        empty.style.marginTop = "10px";
         empty.textContent =
           "Ingen identifierad reklam just nu.";
 
-        adList.appendChild(
-          empty
-        );
+        adList.appendChild(empty);
       } else {
         ads.forEach(ad => {
           adList.appendChild(
@@ -1747,14 +1505,11 @@
           return;
         }
 
-        if (
-          decision.status === "skip"
-        ) {
+        if (decision.status === "skip") {
           skipped.push({
             id: task.id,
             title: task.title,
-            account:
-              task.account
+            account: task.account
           });
 
           return;
@@ -1763,39 +1518,27 @@
         const action = {
           id: task.id,
           title: task.title,
-          account:
-            task.account,
-          status:
-            decision.status
+          account: task.account,
+          status: decision.status
         };
 
-        if (
-          decision.status === "reply"
-        ) {
+        if (decision.status === "reply") {
           action.text =
             decision.text;
 
-          action.approved =
-            true;
+          action.approved = true;
         }
 
-        if (
-          decision.status === "remind"
-        ) {
+        if (decision.status === "remind") {
           action.reminder = {
-            date:
-              decision.date,
-            time:
-              decision.time
+            date: decision.date,
+            time: decision.time
           };
 
-          action.approved =
-            true;
+          action.approved = true;
         }
 
-        actions.push(
-          action
-        );
+        actions.push(action);
       });
 
       ads.forEach(ad => {
@@ -1811,28 +1554,30 @@
           title: ad.title,
           sender: ad.sender,
           account: ad.account,
-          status:
-            decision.status
+          status: decision.status
         });
       });
 
       return {
-        source:
-          "Mejlcentralen",
-
+        source: "Mejlcentralen",
         type: "batch",
-
         version: 8,
-
-        appVersion:
-          APP_VERSION,
-
+        appVersion: APP_VERSION,
         actions,
         skipped,
         adActions
       };
     }
 
+    /*
+     * v8.3:
+     * Skicka batchen direkt till ChatGPT via
+     * window.openai.sendFollowUpMessage.
+     *
+     * Ingen postMessage-fallback används.
+     * UI:t får bara visa "Åtgärder skickade"
+     * om ChatGPT-anropet faktiskt lyckas.
+     */
     async function sendBatch() {
       if (
         !allComplete() ||
@@ -1842,8 +1587,14 @@
         return;
       }
 
-      submitState = "sending";
-      render();
+      const errorBox =
+        document.getElementById(
+          "callback-error"
+        );
+
+      errorBox.classList.remove(
+        "visible"
+      );
 
       const batch =
         buildBatch();
@@ -1852,62 +1603,55 @@
         "MEJLCENTRAL_BATCH " +
         JSON.stringify(batch);
 
-      let sent = false;
+      if (
+        !window.openai ||
+        typeof window.openai
+          .sendFollowUpMessage !==
+          "function"
+      ) {
+        console.error(
+          "window.openai.sendFollowUpMessage är inte tillgänglig."
+        );
+
+        errorBox.classList.add(
+          "visible"
+        );
+
+        return;
+      }
+
+      submitState = "sending";
+      render();
 
       try {
-        if (
-          window.openai &&
-          typeof window.openai
-            .sendFollowUpMessage ===
-            "function"
-        ) {
-          await window.openai
-            .sendFollowUpMessage({
-              prompt: message
-            });
+        await window.openai
+          .sendFollowUpMessage({
+            prompt: message,
+            scrollToBottom: true
+          });
 
-          sent = true;
-        }
+        submitState = "sent";
+        render();
       } catch (error) {
         console.error(
-          "sendFollowUpMessage failed:",
+          "Kunde inte skicka MEJLCENTRAL_BATCH till ChatGPT:",
           error
         );
-      }
 
-      if (!sent) {
-        try {
-          window.parent.postMessage(
-            {
-              type:
-                "openai:send_follow_up_message",
-
-              prompt: message
-            },
-            "*"
-          );
-
-          sent = true;
-        } catch (error) {
-          console.error(
-            "Fallback postMessage failed:",
-            error
-          );
-        }
-      }
-
-      if (sent) {
-        submitState = "sent";
-      } else {
         submitState = "idle";
-      }
+        render();
 
-      render();
+        document
+          .getElementById(
+            "callback-error"
+          )
+          .classList.add(
+            "visible"
+          );
+      }
     }
 
-    function extractToolOutput(
-      value
-    ) {
+    function extractToolOutput(value) {
       if (
         !value ||
         typeof value !== "object"
@@ -1968,9 +1712,7 @@
         (output.tasks || [])
           .map(
             item =>
-              String(
-                item?.id ?? ""
-              )
+              String(item?.id ?? "")
           )
           .join("|");
 
@@ -1978,9 +1720,7 @@
         (output.ads || [])
           .map(
             item =>
-              String(
-                item?.id ?? ""
-              )
+              String(item?.id ?? "")
           )
           .join("|");
 
@@ -2005,9 +1745,7 @@
 
     function applyOutput(value) {
       const output =
-        extractToolOutput(
-          value
-        );
+        extractToolOutput(value);
 
       if (
         (
@@ -2033,23 +1771,19 @@
 
       submitState = "idle";
 
-      Object.keys(
-        decisions
-      ).forEach(key => {
-        delete decisions[key];
-      });
+      Object.keys(decisions)
+        .forEach(key => {
+          delete decisions[key];
+        });
 
-      Object.keys(
-        adDecisions
-      ).forEach(key => {
-        delete adDecisions[key];
-      });
+      Object.keys(adDecisions)
+        .forEach(key => {
+          delete adDecisions[key];
+        });
 
       tasks.forEach(task => {
         if (task.done) {
-          decisions[
-            task.id
-          ] = {
+          decisions[task.id] = {
             status: "done"
           };
         }
@@ -2059,9 +1793,7 @@
     }
 
     document
-      .getElementById(
-        "submit"
-      )
+      .getElementById("submit")
       .addEventListener(
         "click",
         sendBatch
@@ -2071,26 +1803,20 @@
       "openai:set_globals",
       event => {
         const globals =
-          event?.detail
-            ?.globals;
+          event?.detail?.globals;
 
         if (!globals) {
           return;
         }
 
-        if (
-          globals.toolOutput
-        ) {
+        if (globals.toolOutput) {
           applyOutput(
             globals.toolOutput
           );
-
           return;
         }
 
-        if (
-          globals.tool_output
-        ) {
+        if (globals.tool_output) {
           applyOutput(
             globals.tool_output
           );
@@ -2098,23 +1824,17 @@
       }
     );
 
-    if (
-      window.openai
-        ?.toolOutput
-    ) {
+    if (window.openai?.toolOutput) {
       applyOutput(
-        window.openai
-          .toolOutput
+        window.openai.toolOutput
       );
     }
 
     else if (
-      window.openai
-        ?.tool_output
+      window.openai?.tool_output
     ) {
       applyOutput(
-        window.openai
-          .tool_output
+        window.openai.tool_output
       );
     }
 
