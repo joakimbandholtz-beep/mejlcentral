@@ -16,8 +16,8 @@ const app = express();
 app.use(express.json({ limit: "1mb" }));
 app.use(express.static("public"));
 
-const APP_VERSION = "0.8.3";
-const WIDGET_URI = "ui://mejlcentral/v8.3.html";
+const APP_VERSION = "0.8.4";
+const WIDGET_URI = "ui://mejlcentral/v8.4.html";
 
 const STATUS = [
   "reply",
@@ -40,9 +40,15 @@ const taskSchema = z.object({
   id: z.string(),
   title: z.string(),
 
+  sender: z.string().optional().default(""),
   account: z.string().optional().default(""),
   received: z.string().optional().default(""),
   summary: z.string().optional().default(""),
+  threadContext: z.string().optional().default(""),
+
+  provider: z.string().optional().default(""),
+  messageId: z.string().optional().default(""),
+  threadId: z.string().optional().default(""),
 
   statuses: z
     .array(statusSchema)
@@ -65,6 +71,9 @@ const adSchema = z.object({
   account: z.string().optional().default(""),
   received: z.string().optional().default(""),
   summary: z.string().optional().default(""),
+
+  provider: z.string().optional().default(""),
+  messageId: z.string().optional().default(""),
 
   statuses: z
     .array(adStatusSchema)
@@ -97,7 +106,7 @@ function createMcpServer() {
 
   registerAppResource(
     server,
-    "mejlcentral-ui-v8-3",
+    "mejlcentral-ui-v8-4",
     WIDGET_URI,
     {},
     async () => {
@@ -139,6 +148,9 @@ function createMcpServer() {
       description:
         "Visar relevanta mejl och reklam i Mejlcentralens klickbara gränssnitt. " +
         "Vanliga mejl kan hanteras med Svara, Klar, Vänta, Bevaka, Påminn eller Ingen åtgärd. " +
+        "För varje vanligt mejl: ange sender och en kort men konkret summary på 2–4 meningar med senaste relevanta innehåll, frågor, beslut, belopp, datum eller annat som behövs för att agera utan att först öppna mejlet. " +
+        "Om mejlet ingår i en konversation ska threadContext innehålla 1–2 korta meningar om den relevanta bakgrunden från tidigare i tråden. " +
+        "När provider-, messageId- och threadId-värden finns från e-postanslutningen ska de skickas oförändrade; hitta aldrig på tekniska ID:n. De visas inte för användaren men skickas tillbaka i MEJLCENTRAL_BATCH så att valda åtgärder kan utföras mot exakt mejl. " +
         "Påminn kräver datum, tid och ett separat godkännande. Reklam och utskick kan markeras som Radera eller Behåll. " +
         "Verktyget presenterar valen men utför inte externa mejlåtgärder själv.",
 
@@ -188,12 +200,22 @@ function createMcpServer() {
         tasks.map((task) => ({
           id: task.id,
           title: task.title,
+          sender:
+            task.sender || "",
           account:
             task.account || "",
           received:
             task.received || "",
           summary:
             task.summary || "",
+          threadContext:
+            task.threadContext || "",
+          provider:
+            task.provider || "",
+          messageId:
+            task.messageId || "",
+          threadId:
+            task.threadId || "",
 
           statuses:
             Array.isArray(task.statuses) &&
@@ -222,6 +244,10 @@ function createMcpServer() {
             ad.received || "",
           summary:
             ad.summary || "",
+          provider:
+            ad.provider || "",
+          messageId:
+            ad.messageId || "",
 
           statuses:
             Array.isArray(ad.statuses) &&
@@ -245,7 +271,7 @@ function createMcpServer() {
           {
             type: "text",
             text:
-              `Mejlcentralen v8.3: ` +
+              `Mejlcentralen v8.4: ` +
               `${normalizedTasks.length} relevanta mejl och ` +
               `${normalizedAds.length} reklam/utskick.`,
           },
@@ -283,7 +309,7 @@ app.get("/", (req, res) => {
     .type("text/plain")
     .send(
       [
-        "Mejlcentralen v8.3",
+        "Mejlcentralen v8.4",
         "",
         "MCP endpoint: /mcp",
         `Widget: ${WIDGET_URI}`,
