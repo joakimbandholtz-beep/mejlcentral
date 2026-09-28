@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Mejlcentralen v8.3</title>
+  <title>Mejlcentralen v8.4</title>
 
   <style>
     :root {
@@ -118,6 +118,23 @@
       margin-top: 8px;
       font-size: 13px;
       line-height: 1.45;
+      white-space: pre-line;
+    }
+
+    .thread-context {
+      margin-top: 7px;
+      padding: 8px 10px;
+      border-left: 3px solid var(--border);
+      border-radius: 6px;
+      background: var(--bg);
+      color: var(--muted);
+      font-size: 12.5px;
+      line-height: 1.45;
+      white-space: pre-line;
+    }
+
+    .thread-context strong {
+      color: var(--text);
     }
 
     .buttons {
@@ -351,7 +368,7 @@
 
 <body>
   <main class="app">
-    <h1>Mejlcentralen v8.3</h1>
+    <h1>Mejlcentralen v8.4</h1>
 
     <div class="intro">
       Välj vad som ska göras med varje mejl. Inget utförs förrän du
@@ -399,13 +416,13 @@
         class="hint"
         style="margin-top:8px;text-align:center;"
       >
-        Alla visade mejl måste ha ett färdigt val.
+        Alla visade mejl måste ha ett färdigt val. Efter Utför åtgärder skickas batchen tillbaka till samma ChatGPT-chatt.
       </div>
     </div>
   </main>
 
   <script>
-    const APP_VERSION = "0.8.3";
+    const APP_VERSION = "0.8.4";
 
     const STATUS_CONFIG = {
       reply: { label: "Svara" },
@@ -489,6 +506,10 @@
           "Mejl"
         ),
 
+        sender: String(
+          task?.sender ?? ""
+        ),
+
         account: String(
           task?.account ?? ""
         ),
@@ -499,6 +520,22 @@
 
         summary: String(
           task?.summary ?? ""
+        ),
+
+        threadContext: String(
+          task?.threadContext ?? ""
+        ),
+
+        provider: String(
+          task?.provider ?? ""
+        ),
+
+        messageId: String(
+          task?.messageId ?? ""
+        ),
+
+        threadId: String(
+          task?.threadId ?? ""
         ),
 
         statuses:
@@ -550,6 +587,14 @@
 
         summary: String(
           ad?.summary ?? ""
+        ),
+
+        provider: String(
+          ad?.provider ?? ""
+        ),
+
+        messageId: String(
+          ad?.messageId ?? ""
         ),
 
         statuses: [
@@ -652,10 +697,29 @@
         return;
       }
 
+      /*
+       * v8.4: Spara texten utan att rendera om hela widgeten.
+       * En full render ersätter textarea-elementet och gjorde att
+       * Chrome/Windows tappade fokus efter varje tangenttryckning.
+       */
       decision.text = text;
       decision.approved = false;
 
-      render();
+      const approve =
+        document.getElementById(
+          `approve-reply-${taskId}`
+        );
+
+      if (approve) {
+        approve.textContent =
+          "Godkänn svar";
+
+        approve.classList.remove(
+          "selected"
+        );
+      }
+
+      updateProgress();
     }
 
     function approveReply(taskId) {
@@ -984,6 +1048,7 @@
 
       const meta =
         buildMeta([
+          task.sender,
           task.account,
           task.received
         ]);
@@ -1005,6 +1070,15 @@
           task.summary
             ? `<div class="summary">
                 ${escapeHtml(task.summary)}
+               </div>`
+            : ""
+        }
+
+        ${
+          task.threadContext
+            ? `<div class="thread-context">
+                <strong>Tidigare i tråden:</strong>
+                ${escapeHtml(task.threadContext)}
                </div>`
             : ""
         }
@@ -1077,6 +1151,8 @@
 
         approve.type = "button";
         approve.className = "approve";
+        approve.id =
+          `approve-reply-${task.id}`;
 
         approve.textContent =
           decision.approved
@@ -1518,7 +1594,11 @@
         const action = {
           id: task.id,
           title: task.title,
+          sender: task.sender,
           account: task.account,
+          provider: task.provider,
+          messageId: task.messageId,
+          threadId: task.threadId,
           status: decision.status
         };
 
@@ -1554,6 +1634,8 @@
           title: ad.title,
           sender: ad.sender,
           account: ad.account,
+          provider: ad.provider,
+          messageId: ad.messageId,
           status: decision.status
         });
       });
@@ -1570,7 +1652,7 @@
     }
 
     /*
-     * v8.3:
+     * v8.4:
      * Skicka batchen direkt till ChatGPT via
      * window.openai.sendFollowUpMessage.
      *
@@ -1747,15 +1829,24 @@
       const output =
         extractToolOutput(value);
 
+      /*
+       * v8.4: ChatGPT-klienten kan skicka samma toolOutput flera
+       * gånger. Om samma batch redan är laddad bevarar vi val,
+       * inskriven svarstext, scroll och fokus i stället för att
+       * nollställa formuläret.
+       */
       if (
-        (
+        outputSignature(output) ===
+          currentSignature() &&
+        (tasks.length > 0 || ads.length > 0)
+      ) {
+        if (
           submitState === "sent" ||
           submitState === "sending"
-        ) &&
-        outputSignature(output) ===
-          currentSignature()
-      ) {
-        render();
+        ) {
+          render();
+        }
+
         return;
       }
 
